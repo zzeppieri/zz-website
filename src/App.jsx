@@ -14,20 +14,12 @@ export default function App() {
   const crtTimerRef = useRef(null)
   const crtGreenTimerRef = useRef(null)
 
-  const isMobile = () => window.innerWidth < 768
-
   const navigateTo = useCallback((sectionId, color) => {
     if (view !== 'landing') return
     setCurrentSection(sectionId)
     setSectionColor(color || '#4a7cf9')
 
-    if (isMobile()) {
-      setView('section')
-      setZoomClass('expanded done')
-      return
-    }
-
-    // Desktop: bezel zoom — section lives in zoom-bezel the whole time
+    // Bezel zoom — section lives in zoom-bezel the whole time
     setView('zooming-in')
     setZoomClass('')
     setCrtGreen(true)
@@ -62,17 +54,7 @@ export default function App() {
   const navigateBack = useCallback(() => {
     if (view !== 'section') return
 
-    if (isMobile()) {
-      setView('landing')
-      setCurrentSection(null)
-      setZoomClass('')
-      setCrtOn(true)
-      clearTimeout(crtTimerRef.current)
-      crtTimerRef.current = setTimeout(() => setCrtOn(false), 500)
-      return
-    }
-
-    // Desktop: CRT green shutdown, then zoom-out
+    // CRT green shutdown, then zoom-out
     setView('crt-closing')
     setCrtGreen(true)
 
