@@ -22,7 +22,7 @@ function AboutMe({ onBack }) {
         </p>
         <div className="sec-divider" />
         <p className="sec-body" style={{ marginTop: '1.5rem' }}>
-          My work sits at the intersection of <strong style={{ color: '#f0ede8' }}>process engineering,
+          My work sits at the intersection of <strong style={{ color: 'var(--text)' }}>process engineering,
           operational excellence, and human-centered design</strong> — combining technical rigor
           with the ability to align people and projects around a shared goal.
         </p>
@@ -32,8 +32,8 @@ function AboutMe({ onBack }) {
             { label: 'Projects Led', value: '20+', sub: 'End-to-end delivery' },
             { label: 'Methodology', value: 'Lean', sub: 'TPS / Kaizen driven' },
             { label: 'Certified', value: 'PMP', sub: 'Project Management' },
-          ].map(c => (
-            <div key={c.label} className="placeholder-card">
+          ].map((c, i) => (
+            <div key={c.label} className="placeholder-card" style={{ '--i': i }}>
               <div className="card-label">{c.label}</div>
               <div className="card-value">{c.value}</div>
               <div className="card-sub">{c.sub}</div>
@@ -90,17 +90,17 @@ function WorkExperience({ onBack }) {
         <h1 className="sec-title">Work<br />Experience</h1>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {jobs.map((j, i) => (
-            <div key={i} style={{ borderBottom: '1px solid var(--border)', padding: '2.5rem 0', display: 'grid', gridTemplateColumns: '180px 1fr', gap: '3rem' }}>
+            <div key={i} className="job-entry" style={{ '--i': i }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#4f9cf9', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{j.period}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--muted)', marginTop: '0.4rem' }}>{j.company}</div>
+                <div className="job-period">{j.period}</div>
+                <div className="job-company">{j.company}</div>
               </div>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.06em', marginBottom: '1rem' }}>{j.title}</h3>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <h3 className="job-title">{j.title}</h3>
+                <ul className="job-bullets">
                   {j.bullets.map((b, bi) => (
-                    <li key={bi} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#8080a8', display: 'flex', gap: '0.75rem', alignItems: 'flex-start', lineHeight: '1.6' }}>
-                      <span style={{ color: '#4f9cf9', flexShrink: 0 }}>▸</span>{b}
+                    <li key={bi} className="job-bullet">
+                      <span className="job-bullet-marker">▸</span>{b}
                     </li>
                   ))}
                 </ul>
@@ -131,13 +131,13 @@ function Skills({ onBack }) {
         <p className="sec-eyebrow">03 — Capabilities</p>
         <h1 className="sec-title">Skills</h1>
         <div className="placeholder-grid">
-          {cats.map(c => (
-            <div key={c.name} className="placeholder-card">
-              <div className="card-label" style={{ color: '#a855f7' }}>{c.name}</div>
+          {cats.map((c, i) => (
+            <div key={c.name} className="placeholder-card" style={{ '--i': i }}>
+              <div className="card-label">{c.name}</div>
               <ul style={{ listStyle: 'none', marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {c.items.map(item => (
-                  <li key={item} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--muted)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ color: '#a855f7', fontSize: '0.5rem' }}>▸</span>{item}
+                  <li key={item} className="list-item">
+                    <span className="list-marker" style={{ color: 'var(--accent)' }}>▸</span>{item}
                   </li>
                 ))}
               </ul>
@@ -156,7 +156,7 @@ function Projects({ onBack }) {
       <BackBtn onBack={onBack} />
       <div className="sec-inner">
         <p className="sec-eyebrow">04 — Work</p>
-        <h1 className="sec-title">Projects</h1>
+        <h1 className="sec-title">Other<br />Projects</h1>
         <p className="sec-body">A selection of process improvement, engineering, and project management work.</p>
         <div className="sec-divider" />
         <div className="placeholder-grid" style={{ marginTop: 0 }}>
@@ -165,15 +165,27 @@ function Projects({ onBack }) {
             { label: 'Capital Project', value: 'Equipment Install', sub: 'Managed $2M equipment installation from RFQ through commissioning' },
             { label: 'Quality Initiative', value: 'Defect Reduction', sub: 'Dropped scrap rate 32% using DMAIC framework and poka-yoke implementation' },
             { label: 'Lean Deployment', value: '5S Plant-Wide', sub: 'Led facility-wide 5S rollout across 120,000 sq ft manufacturing floor' },
-          ].map(c => (
-            <div key={c.label} className="placeholder-card" style={{ cursor: 'pointer' }}>
-              <div className="card-label" style={{ color: '#22c55e' }}>{c.label}</div>
+          ].map((c, i) => (
+            <div key={c.label} className="placeholder-card" style={{ cursor: 'pointer', '--i': i }}>
+              <div className="card-label">{c.label}</div>
               <div className="card-value" style={{ fontSize: '1.1rem' }}>{c.value}</div>
               <div className="card-sub">{c.sub}</div>
             </div>
           ))}
         </div>
-        <p style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--muted)', letterSpacing: '0.1em' }}>
+        <div
+          className="github-card"
+          onClick={() => window.open('https://github.com/zzeppieri', '_blank')}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="github-card-icon">💻</div>
+          <div className="github-card-text">
+            <div className="github-card-label">GitHub</div>
+            <div className="github-card-desc">View my code & open source work →</div>
+          </div>
+          <div className="github-card-arrow">→</div>
+        </div>
+        <p style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
           → More projects coming soon. Replace these cards with your real work!
         </p>
       </div>
@@ -197,15 +209,15 @@ function CadProjects({ onBack }) {
             { label: 'AutoCAD', value: 'Floor Layout', sub: 'Optimized cell layout for new product line launch' },
             { label: '3D Printing', value: 'Jig Prototype', sub: 'Rapid-prototyped quality inspection jig in 2 days vs 3-week lead time' },
             { label: 'GD&T', value: 'Drawing Package', sub: 'Full engineering drawing package for machined component family' },
-          ].map(c => (
-            <div key={c.label} className="placeholder-card">
-              <div className="card-label" style={{ color: '#f59e0b' }}>{c.label}</div>
+          ].map((c, i) => (
+            <div key={c.label} className="placeholder-card" style={{ '--i': i }}>
+              <div className="card-label">{c.label}</div>
               <div className="card-value" style={{ fontSize: '1.1rem' }}>{c.value}</div>
               <div className="card-sub">{c.sub}</div>
             </div>
           ))}
         </div>
-        <p style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--muted)', letterSpacing: '0.1em' }}>
+        <p style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
           → Add screenshots or renderings of your actual CAD work here!
         </p>
       </div>
@@ -231,13 +243,13 @@ function Tools({ onBack }) {
         <p className="sec-eyebrow">06 — Stack</p>
         <h1 className="sec-title">Tools</h1>
         <div className="placeholder-grid">
-          {tools.map(t => (
-            <div key={t.cat} className="placeholder-card">
-              <div className="card-label" style={{ color: '#06b6d4' }}>{t.cat}</div>
+          {tools.map((t, i) => (
+            <div key={t.cat} className="placeholder-card" style={{ '--i': i }}>
+              <div className="card-label">{t.cat}</div>
               <ul style={{ listStyle: 'none', marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                {t.items.map(i => (
-                  <li key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: '#06b6d4', fontSize: '0.5rem' }}>▸</span>{i}
+                {t.items.map(item => (
+                  <li key={item} className="list-item">
+                    <span className="list-marker" style={{ color: 'var(--accent)' }}>▸</span>{item}
                   </li>
                 ))}
               </ul>
@@ -268,10 +280,10 @@ function Hobbies({ onBack }) {
         <h1 className="sec-title">Hobbies</h1>
         <p className="sec-body">What I'm up to when I'm not optimizing manufacturing processes.</p>
         <div className="placeholder-grid" style={{ marginTop: '2rem' }}>
-          {items.map(h => (
-            <div key={h.label} className="placeholder-card">
+          {items.map((h, i) => (
+            <div key={h.label} className="placeholder-card" style={{ '--i': i }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>{h.emoji}</div>
-              <div className="card-label" style={{ color: '#ec4899' }}>{h.label}</div>
+              <div className="card-label">{h.label}</div>
               <div className="card-sub" style={{ marginTop: '0.3rem' }}>{h.desc}</div>
             </div>
           ))}

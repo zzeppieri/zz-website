@@ -1,74 +1,142 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Landing from './Landing'
 import Sections from './sections'
 
 export default function App() {
+  // view: 'landing' | 'zooming-in' | 'section' | 'crt-closing' | 'zooming-out'
   const [view, setView] = useState('landing')
   const [currentSection, setCurrentSection] = useState(null)
-  const [zoom, setZoom] = useState({ visible: false, expanding: false, color: '#4a7cf9' })
-  const timeoutsRef = useRef([])
+  const [sectionColor, setSectionColor] = useState('#4a7cf9')
+  const [zoomClass, setZoomClass] = useState('')
+  const [crtOn, setCrtOn] = useState(false)
+  const [crtGreen, setCrtGreen] = useState(false)
+  const safetyTimerRef = useRef(null)
+  const crtTimerRef = useRef(null)
+  const crtGreenTimerRef = useRef(null)
 
-  const clearAll = () => timeoutsRef.current.forEach(clearTimeout)
-  const after = (ms, fn) => { const t = setTimeout(fn, ms); timeoutsRef.current.push(t); return t }
+  const isMobile = () => window.innerWidth < 768
 
-  const navigateTo = (sectionId, color) => {
-    clearAll()
-    // Immediately show circle at portal size
-    setZoom({ visible: true, expanding: false, color: color || '#4a7cf9' })
+  const navigateTo = useCallback((sectionId, color) => {
+    if (view !== 'landing') return
+    setCurrentSection(sectionId)
+    setSectionColor(color || '#4a7cf9')
 
-    // Next tick: trigger scale up
-    after(30, () => setZoom(z => ({ ...z, expanding: true })))
-
-    // Mid-animation: swap content
-    after(500, () => {
-      setCurrentSection(sectionId)
+    if (isMobile()) {
       setView('section')
+      setZoomClass('expanded done')
+      return
+    }
+
+    // Desktop: bezel zoom — section lives in zoom-bezel the whole time
+    setView('zooming-in')
+    setZoomClass('')
+    setCrtGreen(true)
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setZoomClass('expanded')
+      })
     })
 
-    // After animation: hide overlay
-    after(750, () => setZoom({ visible: false, expanding: false, color }))
-  }
+    clearTimeout(safetyTimerRef.current)
+    safetyTimerRef.current = setTimeout(() => {
+      setView('section')
+      setZoomClass('expanded done')
+      // Fade out green overlay after entering section
+      clearTimeout(crtGreenTimerRef.current)
+      crtGreenTimerRef.current = setTimeout(() => setCrtGreen(false), 100)
+    }, 900)
+  }, [view])
 
-  const navigateBack = () => {
-    clearAll()
-    setZoom({ visible: true, expanding: true, color: '#07070f' })
+  const finishZoomOut = useCallback(() => {
+    setView('landing')
+    setCurrentSection(null)
+    setZoomClass('')
+    setCrtGreen(false)
+    // Trigger CRT turn-on animation
+    setCrtOn(true)
+    clearTimeout(crtTimerRef.current)
+    crtTimerRef.current = setTimeout(() => setCrtOn(false), 500)
+  }, [])
 
-    after(30, () => setZoom(z => ({ ...z, expanding: true })))
+  const navigateBack = useCallback(() => {
+    if (view !== 'section') return
 
-    after(450, () => {
+    if (isMobile()) {
       setView('landing')
       setCurrentSection(null)
-    })
+      setZoomClass('')
+      setCrtOn(true)
+      clearTimeout(crtTimerRef.current)
+      crtTimerRef.current = setTimeout(() => setCrtOn(false), 500)
+      return
+    }
 
-    after(700, () => setZoom({ visible: false, expanding: false, color: '#07070f' }))
-  }
+    // Desktop: CRT green shutdown, then zoom-out
+    setView('crt-closing')
+    setCrtGreen(true)
+
+    setTimeout(() => {
+      setView('zooming-out')
+      setZoomClass('start-expanded')
+
+      setTimeout(() => {
+        setZoomClass('collapsing')
+      }, 30)
+
+      clearTimeout(safetyTimerRef.current)
+      safetyTimerRef.current = setTimeout(finishZoomOut, 500)
+    }, 200)
+  }, [view, finishZoomOut])
+
+  const handleZoomTransitionEnd = useCallback((e) => {
+    if (e.propertyName !== 'top') return
+    clearTimeout(safetyTimerRef.current)
+
+    if (view === 'zooming-in') {
+      setView('section')
+      setZoomClass('expanded done')
+      clearTimeout(crtGreenTimerRef.current)
+      crtGreenTimerRef.current = setTimeout(() => setCrtGreen(false), 100)
+    } else if (view === 'zooming-out') {
+      finishZoomOut()
+    }
+  }, [view, finishZoomOut])
 
   const SectionComp = currentSection ? Sections[currentSection] : null
 
+  // Always keep Landing mounted so zoom-out transition doesn't flash
+  const showLanding = view === 'landing' || view === 'zooming-in' || view === 'section' || view === 'crt-closing' || view === 'zooming-out'
+  // Section is always in the zoom-container (zoom-in, section, crt-closing, zoom-out)
+  const showSectionContainer = (view === 'zooming-in' || view === 'section' || view === 'crt-closing' || view === 'zooming-out') && SectionComp
+  const landingFading = view === 'zooming-in'
+
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-      {view === 'landing' && <Landing onNavigate={navigateTo} />}
-      {view === 'section' && SectionComp && <SectionComp onBack={navigateBack} />}
-
-      {/* Portal zoom circle */}
-      {zoom.visible && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            width: '210px',
-            height: '210px',
-            borderRadius: '50%',
-            background: zoom.color,
-            pointerEvents: 'none',
-            zIndex: 9999,
-            transform: `translate(-50%, -50%) scale(${zoom.expanding ? 22 : 1})`,
-            transition: zoom.expanding
-              ? 'transform 0.72s cubic-bezier(0.76, 0, 0.24, 1)'
-              : 'none',
-          }}
+      {showLanding && (
+        <Landing
+          onNavigate={navigateTo}
+          fading={landingFading}
+          crtOn={crtOn}
         />
+      )}
+
+      {showSectionContainer && (
+        <div className="zoom-outer">
+          <div
+            className={`zoom-bezel ${zoomClass}${crtGreen ? ' crt-green' : ''}`}
+            onTransitionEnd={handleZoomTransitionEnd}
+          >
+            <button className="bezel-back" onClick={navigateBack}>
+              <svg width="12" height="12" viewBox="0 0 18 18" fill="none">
+                <path d="M11 3L5 9L11 15" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <div className="zoom-screen">
+              <SectionComp onBack={navigateBack} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
