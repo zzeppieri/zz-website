@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zachary Zeppieri</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c0c0c;
+      --surface: #141414;
+      --border: #2a2a2a;
+      --orange: #ff6b2b;
+      --amber: #f7c948;
+      --white: #f0ede8;
+      --muted: #6b6b6b;
+      --grid-color: rgba(255, 107, 43, 0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* Blueprint grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+        linear-gradient(rgba(255,107,43,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,107,43,0.025) 1px, transparent 1px);
+      background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Noise overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(12, 12, 12, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.12em;
+      color: var(--orange);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--orange); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    .hero-tag::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--orange);
+    }
+
+    .hero-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5rem, 12vw, 11rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      color: var(--white);
+      opacity: 0;
+      animation: fadeUp 0.8s 0.35s forwards;
+    }
+
+    .hero-name span {
+      color: var(--orange);
+      display: block;
+    }
+
+    .hero-subtitle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: clamp(0.8rem, 1.5vw, 1rem);
+      color: var(--muted);
+      margin-top: 2rem;
+      line-height: 1.7;
+      max-width: 480px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.5s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.65s forwards;
+    }
+
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 0.85rem 1.75rem;
+      text-decoration: none;
+      border: 1px solid;
+      transition: all 0.25s;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--orange);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--muted);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
+    /* Hero decorative element */
+    .hero-deco {
+      position: absolute;
+      right: -60px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+      opacity: 0;
+      animation: fadeIn 1.2s 0.8s forwards;
+      pointer-events: none;
+    }
+
+    /* ── SECTION BASE ── */
+    section {
+      padding: 7rem 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    .section-number {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--orange);
+      letter-spacing: 0.2em;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 1.05rem;
+      line-height: 1.9;
+      color: #b8b4ae;
+      margin-bottom: 1.5rem;
+    }
+
+    .about-text p strong {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5px;
+      background: var(--border);
+    }
+
+    .stat-item {
+      background: var(--surface);
+      padding: 2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .stat-item:hover { background: #1c1c1c; }
+
+    .stat-item::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px;
+      height: 0;
+      background: var(--orange);
+      transition: height 0.4s;
+    }
+
+    .stat-item:hover::before { height: 100%; }
+
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      color: var(--orange);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+    }
+
+    /* ── EXPERIENCE ── */
+    #experience { border-top: 1px solid var(--border); }
+
+    .exp-list { display: flex; flex-direction: column; gap: 0; }
+
+    .exp-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 3rem;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      transition: background 0.3s;
+    }
+
+    .exp-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem; top: 0; bottom: 0;
+      width: 2px;
+      background: transparent;
+      transition: background 0.3s;
+    }
+
+    .exp-item:hover::before { background: var(--orange); }
+
+    .exp-meta { padding-top: 0.25rem; }
+
+    .exp-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--orange);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .exp-company {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .exp-role {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 1rem;
+    }
+
+    .exp-desc {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: #b8b4ae;
+    }
+
+    .exp-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .tag:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
+    /* ── SKILLS ── */
+    #skills { border-top: 1px solid var(--border); }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: var(--border);
+    }
+
+    .skill-block {
+      background: var(--surface);
+      padding: 2.5rem 2rem;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skill-block:hover { background: #181818; }
+
+    .skill-block::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--orange);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .skill-block:hover::after { transform: scaleX(1); }
+
+    .skill-category {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 1.25rem;
+    }
+
+    .skill-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 1rem;
+    }
+
+    .skill-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .skill-items li {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .skill-items li::before {
+      content: '▸';
+      color: var(--orange);
+      font-size: 0.5rem;
+    }
+
+    /* ── CONTACT ── */
+    #contact { border-top: 1px solid var(--border); }
+
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .contact-text h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      line-height: 1;
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-text p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.9;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5px;
+      background: var(--border);
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 2rem;
+      background: var(--surface);
+      text-decoration: none;
+      transition: background 0.2s;
+      group: true;
+    }
+
+    .contact-link:hover { background: #1c1c1c; }
+
+    .contact-link-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .contact-link-type {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: var(--orange);
+      text-transform: uppercase;
+    }
+
+    .contact-link-value {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--white);
+    }
+
+    .contact-arrow {
+      font-size: 1.2rem;
+      color: var(--muted);
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .contact-link:hover .contact-arrow {
+      transform: translate(4px, -4px);
+      color: var(--orange);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    footer span { color: var(--orange); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes spin {
+      from { transform: translateY(-50%) rotate(0deg); }
+      to   { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .about-grid,
+      .contact-inner { grid-template-columns: 1fr; gap: 3rem; }
+      .skills-grid { grid-template-columns: 1fr 1fr; }
+      .exp-item { grid-template-columns: 1fr; gap: 0.75rem; }
+      .hero-deco { display: none; }
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { gap: 1.25rem; }
+    }
+
+    @media (max-width: 480px) {
+      .skills-grid { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">ZZ</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="container">
+      <p class="hero-tag">Lean Manufacturing · Project Management</p>
+      <h1 class="hero-name">
+        Zachary<span>Zeppieri</span>
+      </h1>
+      <p class="hero-subtitle">
+        Engineering efficiency at the intersection of process design and<br/>
+        people — building systems that eliminate waste and create value.
+      </p>
+      <div class="hero-cta">
+        <a href="#experience" class="btn btn-primary">View My Work</a>
+        <a href="#contact" class="btn btn-secondary">Get In Touch</a>
+      </div>
+    </div>
+
+    <!-- Decorative SVG schematic -->
+    <svg class="hero-deco" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="250" cy="250" r="200" stroke="#ff6b2b" stroke-width="0.5" stroke-dasharray="6 10"/>
+      <circle cx="250" cy="250" r="140" stroke="#ff6b2b" stroke-width="0.5" opacity="0.5"/>
+      <circle cx="250" cy="250" r="80" stroke="#f7c948" stroke-width="0.5" stroke-dasharray="2 6"/>
+      <line x1="50" y1="250" x2="450" y2="250" stroke="#ff6b2b" stroke-width="0.5" opacity="0.4"/>
+      <line x1="250" y1="50" x2="250" y2="450" stroke="#ff6b2b" stroke-width="0.5" opacity="0.4"/>
+      <line x1="100" y1="100" x2="400" y2="400" stroke="#ff6b2b" stroke-width="0.5" opacity="0.2"/>
+      <line x1="400" y1="100" x2="100" y2="400" stroke="#ff6b2b" stroke-width="0.5" opacity="0.2"/>
+      <rect x="225" y="225" width="50" height="50" stroke="#f7c948" stroke-width="1"/>
+      <circle cx="250" cy="250" r="5" fill="#ff6b2b"/>
+      <text x="270" y="210" fill="#ff6b2b" font-family="monospace" font-size="8" opacity="0.6">ø200mm</text>
+      <text x="270" y="245" fill="#f7c948" font-family="monospace" font-size="7" opacity="0.5">CENTERLINE</text>
+      <text x="60" y="245" fill="#ff6b2b" font-family="monospace" font-size="7" opacity="0.4">REF A</text>
+      <polygon points="250,30 257,45 243,45" fill="#ff6b2b" opacity="0.5"/>
+      <polygon points="250,470 257,455 243,455" fill="#ff6b2b" opacity="0.5"/>
+    </svg>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-number">01 —</span>
+        <h2 class="section-title">About</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p>I'm a <strong>Lean Manufacturing Engineer and Project Manager</strong> passionate about designing smarter systems, eliminating waste, and leading cross-functional teams toward measurable improvement.</p>
+          <p>My work sits at the intersection of <strong>process engineering, operational excellence, and human-centered design</strong> — combining technical rigor with the ability to align people and projects around a common goal.</p>
+          <p>I believe the best processes are invisible: they just work, freeing people to focus on what matters most. That philosophy drives everything I do.</p>
+        </div>
+        <div class="stat-grid reveal">
+          <div class="stat-item">
+            <div class="stat-value">5+</div>
+            <div class="stat-label">Years Experience</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">20+</div>
+            <div class="stat-label">Projects Led</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">Lean</div>
+            <div class="stat-label">Methodology</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">PMP</div>
+            <div class="stat-label">Certified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-number">02 —</span>
+        <h2 class="section-title">Experience</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="exp-list">
+
+        <div class="exp-item reveal">
+          <div class="exp-meta">
+            <div class="exp-date">2022 — Present</div>
+            <div class="exp-company">Your Current Company<br/>Location</div>
+          </div>
+          <div class="exp-content">
+            <h3 class="exp-role">Lean Manufacturing Engineer</h3>
+            <p class="exp-desc">Led end-to-end process improvement initiatives across manufacturing cells, reducing cycle time by X% and scrap rate by Y%. Facilitated kaizen events and value stream mapping workshops with cross-functional teams. Drove adoption of standardized work documentation and visual management systems.</p>
+            <div class="exp-tags">
+              <span class="tag">Value Stream Mapping</span>
+              <span class="tag">Kaizen</span>
+              <span class="tag">5S</span>
+              <span class="tag">PDCA</span>
+              <span class="tag">Waste Elimination</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exp-item reveal">
+          <div class="exp-meta">
+            <div class="exp-date">2020 — 2022</div>
+            <div class="exp-company">Previous Company<br/>Location</div>
+          </div>
+          <div class="exp-content">
+            <h3 class="exp-role">Project Manager</h3>
+            <p class="exp-desc">Managed a portfolio of capital and process improvement projects from initiation to close. Coordinated stakeholders, maintained project schedules, and ensured on-time, on-budget delivery. Introduced structured project governance frameworks that improved on-time delivery rates across the department.</p>
+            <div class="exp-tags">
+              <span class="tag">Project Governance</span>
+              <span class="tag">Stakeholder Management</span>
+              <span class="tag">Risk Mitigation</span>
+              <span class="tag">Scheduling</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exp-item reveal">
+          <div class="exp-meta">
+            <div class="exp-date">2018 — 2020</div>
+            <div class="exp-company">Earlier Company<br/>Location</div>
+          </div>
+          <div class="exp-content">
+            <h3 class="exp-role">Manufacturing Engineer</h3>
+            <p class="exp-desc">Supported production floor operations with engineering analysis, tooling design, and process documentation. Collaborated with quality teams on root cause analysis and corrective action plans for recurring defect patterns.</p>
+            <div class="exp-tags">
+              <span class="tag">Root Cause Analysis</span>
+              <span class="tag">FMEA</span>
+              <span class="tag">Process Documentation</span>
+              <span class="tag">Tooling Design</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-number">03 —</span>
+        <h2 class="section-title">Skills</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="skills-grid">
+
+        <div class="skill-block reveal">
+          <div class="skill-category">Methodology</div>
+          <div class="skill-name">Lean & Continuous Improvement</div>
+          <ul class="skill-items">
+            <li>Value Stream Mapping</li>
+            <li>Kaizen & PDCA</li>
+            <li>5S / Visual Management</li>
+            <li>Waste Elimination (8 Wastes)</li>
+            <li>Standardized Work</li>
+          </ul>
+        </div>
+
+        <div class="skill-block reveal">
+          <div class="skill-category">Management</div>
+          <div class="skill-name">Project & Program</div>
+          <ul class="skill-items">
+            <li>Project Planning & Scheduling</li>
+            <li>Stakeholder Communication</li>
+            <li>Risk & Change Management</li>
+            <li>Budget Tracking</li>
+            <li>Cross-functional Leadership</li>
+          </ul>
+        </div>
+
+        <div class="skill-block reveal">
+          <div class="skill-category">Engineering</div>
+          <div class="skill-name">Process & Quality</div>
+          <ul class="skill-items">
+            <li>Root Cause Analysis</li>
+            <li>FMEA / DMAIC</li>
+            <li>Six Sigma Fundamentals</li>
+            <li>Process Capability Studies</li>
+            <li>SPC & Data Analysis</li>
+          </ul>
+        </div>
+
+        <div class="skill-block reveal">
+          <div class="skill-category">Tools</div>
+          <div class="skill-name">Software & Systems</div>
+          <ul class="skill-items">
+            <li>AutoCAD / SolidWorks</li>
+            <li>Microsoft Project</li>
+            <li>Excel / Power BI</li>
+            <li>ERP Systems (SAP / Oracle)</li>
+            <li>Minitab</li>
+          </ul>
+        </div>
+
+        <div class="skill-block reveal">
+          <div class="skill-category">Soft Skills</div>
+          <div class="skill-name">Leadership & Communication</div>
+          <ul class="skill-items">
+            <li>Team Facilitation</li>
+            <li>Executive Presentations</li>
+            <li>Mentoring & Coaching</li>
+            <li>Conflict Resolution</li>
+            <li>Change Management</li>
+          </ul>
+        </div>
+
+        <div class="skill-block reveal">
+          <div class="skill-category">Education</div>
+          <div class="skill-name">Certifications</div>
+          <ul class="skill-items">
+            <li>B.S. Industrial Engineering</li>
+            <li>PMP Certified</li>
+            <li>Lean Six Sigma Green Belt</li>
+            <li>OSHA 30-Hour</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-number">04 —</span>
+        <h2 class="section-title">Contact</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="contact-inner">
+        <div class="contact-text reveal">
+          <h3>Let's Build<br/>Something Better.</h3>
+          <p>Open to new opportunities, collaborations, and conversations about process improvement, engineering leadership, or anything in between.</p>
+        </div>
+        <div class="contact-links reveal">
+          <a href="mailto:zachary@zacharyzeppieri.com" class="contact-link">
+            <div class="contact-link-left">
+              <span class="contact-link-type">Email</span>
+              <span class="contact-link-value">zachary@zacharyzeppieri.com</span>
+            </div>
+            <span class="contact-arrow">↗</span>
+          </a>
+          <a href="https://linkedin.com/in/zacharyzeppieri" target="_blank" class="contact-link">
+            <div class="contact-link-left">
+              <span class="contact-link-type">LinkedIn</span>
+              <span class="contact-link-value">linkedin.com/in/zacharyzeppieri</span>
+            </div>
+            <span class="contact-arrow">↗</span>
+          </a>
+          <a href="https://github.com/zzeppieri" target="_blank" class="contact-link">
+            <div class="contact-link-left">
+              <span class="contact-link-type">GitHub</span>
+              <span class="contact-link-value">github.com/zzeppieri</span>
+            </div>
+            <span class="contact-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 <span>Zachary Zeppieri</span></p>
+    <p>zacharyzeppieri<span>.com</span></p>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    reveals.forEach(el => observer.observe(el));
+
+    // Smooth active nav highlight
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 120) current = s.id;
+      });
+      navLinks.forEach(a => {
+        a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--orange)' : '';
+      });
+    });
+  </script>
+</body>
+</html>
