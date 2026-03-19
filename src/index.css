@@ -985,8 +985,13 @@ body {
   white-space: nowrap;
   pointer-events: none;
   z-index: 20;
-  animation: fadeUp 0.3s both;
+  animation: cadInstructionsIn 0.3s both;
   box-shadow: 0 0 12px rgba(78,201,212,0.1);
+}
+
+@keyframes cadInstructionsIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* ─── MOBILE LANDING ─── */
