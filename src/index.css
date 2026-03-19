@@ -968,17 +968,25 @@ body {
   stroke-width: 0.75;
   opacity: 0.5;
 }
-.cad-controls {
+.cad-instructions {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  top: calc(50% + 160px);
+  left: 50%;
+  transform: translateX(-50%);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.15em;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--cyan);
+  background: rgba(20, 35, 55, 0.92);
+  border: 1px solid rgba(78, 201, 212, 0.4);
+  border-radius: 3px;
+  padding: 6px 14px;
+  white-space: nowrap;
+  pointer-events: none;
   z-index: 20;
   animation: fadeUp 0.3s both;
+  box-shadow: 0 0 12px rgba(78,201,212,0.1);
 }
 
 /* ─── MOBILE LANDING ─── */

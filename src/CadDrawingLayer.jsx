@@ -116,11 +116,10 @@ export default function CadDrawingLayer({ viewW, viewH, containerRef, paused, fa
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleKey])
 
-  // Reset lines on navigation (when paused/fading changes to true)
+  // Cancel in-progress drawing on navigation, but keep completed lines
   const prevDisabled = useRef(disabled)
   useEffect(() => {
     if (disabled && !prevDisabled.current) {
-      setLines([])
       setStartPoint(null)
       setPreviewEnd(null)
     }
@@ -164,8 +163,10 @@ export default function CadDrawingLayer({ viewW, viewH, containerRef, paused, fa
           </>
         )}
       </svg>
-      {lines.length > 0 && (
-        <div className="cad-controls">Z undo / C clear</div>
+      {(lines.length > 0 || startPoint) && (
+        <div className="cad-instructions">
+          Click to place points · Esc cancel · Z undo · C clear
+        </div>
       )}
     </>
   )
