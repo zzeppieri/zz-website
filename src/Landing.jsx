@@ -42,8 +42,10 @@ function useIsMobile(breakpoint = 768) {
 }
 
 /* ── Background dust particle field ── */
-function BgCanvas() {
+function BgCanvas({ paused }) {
   const ref = useRef(null)
+  const pausedRef = useRef(paused)
+  pausedRef.current = paused
 
   useEffect(() => {
     const canvas = ref.current
@@ -68,18 +70,20 @@ function BgCanvas() {
     }))
 
     const tick = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      pts.forEach(p => {
-        p.x += p.vx; p.y += p.vy
-        if (p.x < 0) p.x = canvas.width
-        if (p.x > canvas.width)  p.x = 0
-        if (p.y < 0) p.y = canvas.height
-        if (p.y > canvas.height) p.y = 0
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${p.col},${p.a})`
-        ctx.fill()
-      })
+      if (!pausedRef.current) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        pts.forEach(p => {
+          p.x += p.vx; p.y += p.vy
+          if (p.x < 0) p.x = canvas.width
+          if (p.x > canvas.width)  p.x = 0
+          if (p.y < 0) p.y = canvas.height
+          if (p.y > canvas.height) p.y = 0
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(${p.col},${p.a})`
+          ctx.fill()
+        })
+      }
       raf = requestAnimationFrame(tick)
     }
     tick()
@@ -173,7 +177,7 @@ function CrtTerminal({ hovered, shuttingDown, isMobile, crtOn }) {
         <div className={`terminal-screen${shuttingDown ? ' crt-off' : ''}${crtOn ? ' crt-on' : ''}`}>
           <div className="terminal-scanlines" />
           <div className="terminal-vignette" />
-          <div className="terminal-content">
+          <div className="terminal-content" aria-live="polite">
             {displayLines.map((line, i) => (
               <div key={i} className={`terminal-line${line.cls ? ' ' + line.cls : ''}`}>
                 {line.text}
@@ -262,8 +266,12 @@ function ContactSubmenu({ bubble, viewW, viewH }) {
         {bubble.contactOptions.map((opt) => (
           <div
             key={opt.label}
+            role="button"
+            tabIndex={0}
+            aria-label={opt.label}
             className="contact-option"
-            onClick={(e) => { e.stopPropagation(); window.open(opt.url, '_blank') }}
+            onClick={(e) => { e.stopPropagation(); window.open(opt.url, '_blank', 'noopener,noreferrer') }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(opt.url, '_blank', 'noopener,noreferrer') } }}
           >
             <span className="contact-option-icon">{opt.icon}</span>
             <span>{opt.label}</span>
@@ -407,6 +415,9 @@ function MobileLanding({ onNavigate, crtOn }) {
         {BUBBLES.map((b, i) => (
           <div key={b.id}>
             <div
+              role="button"
+              tabIndex={0}
+              aria-label={b.label.replace('\n', ' ')}
               className="mobile-card"
               style={{
                 '--mc': b.color,
@@ -420,6 +431,13 @@ function MobileLanding({ onNavigate, crtOn }) {
                   return
                 }
                 onNavigate(b.id, b.color)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  if (b.isContact) { setContactOpen(prev => !prev); return }
+                  onNavigate(b.id, b.color)
+                }
               }}
             >
               <div className="mobile-card-pin" />
@@ -435,8 +453,12 @@ function MobileLanding({ onNavigate, crtOn }) {
                 {b.contactOptions.map(opt => (
                   <div
                     key={opt.label}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={opt.label}
                     className="mobile-contact-option"
-                    onClick={() => window.open(opt.url, '_blank')}
+                    onClick={() => window.open(opt.url, '_blank', 'noopener,noreferrer')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(opt.url, '_blank', 'noopener,noreferrer') } }}
                   >
                     <span>{opt.icon}</span>
                     <span>{opt.label}</span>
@@ -452,11 +474,14 @@ function MobileLanding({ onNavigate, crtOn }) {
 }
 
 /* ── Main Landing component ── */
-export default function Landing({ onNavigate, fading, crtOn }) {
+export default function Landing({ onNavigate, fading, crtOn, paused }) {
   const [hovered, setHovered] = useState(null)
   const [contactOpen, setContactOpen] = useState(false)
   const [shuttingDown, setShuttingDown] = useState(false)
-  const [viewSize, setViewSize] = useState({ w: window.innerWidth, h: window.innerHeight })
+  const [viewSize, setViewSize] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    h: typeof window !== 'undefined' ? window.innerHeight : 768,
+  }))
   const isMobile = useIsMobile()
   const shutdownTimer = useRef(null)
   const contactRef = useRef(null)
@@ -465,6 +490,11 @@ export default function Landing({ onNavigate, fading, crtOn }) {
     const onResize = () => setViewSize({ w: window.innerWidth, h: window.innerHeight })
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Cleanup shutdown timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(shutdownTimer.current)
   }, [])
 
   // Click-away handler for contact submenu
@@ -508,7 +538,7 @@ export default function Landing({ onNavigate, fading, crtOn }) {
       className={fading ? 'landing-fade-out' : ''}
       style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', transition: 'opacity 0.4s ease' }}
     >
-      <BgCanvas />
+      <BgCanvas paused={paused} />
       <div className="blueprint-bg" />
 
       {/* Circuit board traces */}
@@ -551,6 +581,9 @@ export default function Landing({ onNavigate, fading, crtOn }) {
           <div
             key={b.id}
             ref={b.isContact ? contactRef : undefined}
+            role="button"
+            tabIndex={0}
+            aria-label={b.label.replace('\n', ' ')}
             className={`sticky-bubble ${active ? 'active' : ''}`}
             style={{
               position: 'absolute',
@@ -567,6 +600,9 @@ export default function Landing({ onNavigate, fading, crtOn }) {
             onMouseEnter={() => setHovered(b)}
             onMouseLeave={() => setHovered(null)}
             onClick={() => handleClick(b)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(b) } }}
+            onFocus={() => setHovered(b)}
+            onBlur={() => setHovered(null)}
           >
             <div className="sticky-pin" />
             <div className="sticky-note">

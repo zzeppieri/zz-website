@@ -1,6 +1,29 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect, Component } from 'react'
 import Landing from './Landing'
 import Sections from './sections'
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', color: '#e0e8f0', fontFamily: 'monospace', background: '#1a2332', minHeight: '100vh' }}>
+          <h2>Something went wrong.</h2>
+          <button onClick={() => this.setState({ hasError: false })} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+            Try again
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export default function App() {
   // view: 'landing' | 'zooming-in' | 'section' | 'crt-closing' | 'zooming-out'
@@ -13,6 +36,19 @@ export default function App() {
   const safetyTimerRef = useRef(null)
   const crtTimerRef = useRef(null)
   const crtGreenTimerRef = useRef(null)
+  const backTimerRef = useRef(null)
+  const backDelayRef = useRef(null)
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(safetyTimerRef.current)
+      clearTimeout(crtTimerRef.current)
+      clearTimeout(crtGreenTimerRef.current)
+      clearTimeout(backTimerRef.current)
+      clearTimeout(backDelayRef.current)
+    }
+  }, [])
 
   const navigateTo = useCallback((sectionId, color) => {
     if (view !== 'landing') return
@@ -58,11 +94,13 @@ export default function App() {
     setView('crt-closing')
     setCrtGreen(true)
 
-    setTimeout(() => {
+    clearTimeout(backTimerRef.current)
+    backTimerRef.current = setTimeout(() => {
       setView('zooming-out')
       setZoomClass('start-expanded')
 
-      setTimeout(() => {
+      clearTimeout(backDelayRef.current)
+      backDelayRef.current = setTimeout(() => {
         setZoomClass('collapsing')
       }, 30)
 
@@ -100,6 +138,7 @@ export default function App() {
           onNavigate={navigateTo}
           fading={landingFading}
           crtOn={crtOn}
+          paused={view === 'section' || view === 'crt-closing'}
         />
       )}
 
@@ -109,13 +148,15 @@ export default function App() {
             className={`zoom-bezel ${zoomClass}${crtGreen ? ' crt-green' : ''}`}
             onTransitionEnd={handleZoomTransitionEnd}
           >
-            <button className="bezel-back" onClick={navigateBack}>
+            <button className="bezel-back" onClick={navigateBack} aria-label="Go back">
               <svg width="12" height="12" viewBox="0 0 18 18" fill="none">
                 <path d="M11 3L5 9L11 15" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
             <div className="zoom-screen">
-              <SectionComp onBack={navigateBack} />
+              <ErrorBoundary>
+                <SectionComp onBack={navigateBack} />
+              </ErrorBoundary>
             </div>
           </div>
         </div>

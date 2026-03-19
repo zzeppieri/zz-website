@@ -1,17 +1,7 @@
-/* ── Shared back button ── */
-function BackBtn({ onBack }) {
-  return (
-    <button className="back-btn" onClick={onBack}>
-      ← Back
-    </button>
-  )
-}
-
 /* ── About Me ── */
-function AboutMe({ onBack }) {
+function AboutMe() {
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
       <div className="sec-inner">
         <p className="sec-eyebrow">01 — About</p>
         <h1 className="sec-title">About<br />Me</h1>
@@ -46,7 +36,7 @@ function AboutMe({ onBack }) {
 }
 
 /* ── Work Experience ── */
-function WorkExperience({ onBack }) {
+function WorkExperience() {
   const jobs = [
     {
       title: 'Lean Manufacturing Engineer',
@@ -84,8 +74,7 @@ function WorkExperience({ onBack }) {
 
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
-      <div className="sec-inner">
+            <div className="sec-inner">
         <p className="sec-eyebrow">02 — Career</p>
         <h1 className="sec-title">Work<br />Experience</h1>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -114,7 +103,7 @@ function WorkExperience({ onBack }) {
 }
 
 /* ── Skills ── */
-function Skills({ onBack }) {
+function Skills() {
   const cats = [
     { name: 'Lean & CI', color: '#a855f7', items: ['Value Stream Mapping', 'Kaizen / PDCA', '5S Visual Management', 'Waste Elimination', 'Standardized Work'] },
     { name: 'Project Mgmt', color: '#a855f7', items: ['Planning & Scheduling', 'Stakeholder Comms', 'Risk Management', 'Budget Tracking', 'Change Management'] },
@@ -126,8 +115,7 @@ function Skills({ onBack }) {
 
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
-      <div className="sec-inner">
+            <div className="sec-inner">
         <p className="sec-eyebrow">03 — Capabilities</p>
         <h1 className="sec-title">Skills</h1>
         <div className="placeholder-grid">
@@ -150,11 +138,10 @@ function Skills({ onBack }) {
 }
 
 /* ── Projects ── */
-function Projects({ onBack }) {
+function Projects() {
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
-      <div className="sec-inner">
+            <div className="sec-inner">
         <p className="sec-eyebrow">04 — Work</p>
         <h1 className="sec-title">Other<br />Projects</h1>
         <p className="sec-body">A selection of process improvement, engineering, and project management work.</p>
@@ -175,7 +162,7 @@ function Projects({ onBack }) {
         </div>
         <div
           className="github-card"
-          onClick={() => window.open('https://github.com/zzeppieri', '_blank')}
+          onClick={() => window.open('https://github.com/zzeppieri', '_blank', 'noopener,noreferrer')}
           style={{ cursor: 'pointer' }}
         >
           <div className="github-card-icon">💻</div>
@@ -194,11 +181,10 @@ function Projects({ onBack }) {
 }
 
 /* ── CAD Projects ── */
-function CadProjects({ onBack }) {
+function CadProjects() {
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
-      <div className="sec-inner">
+            <div className="sec-inner">
         <p className="sec-eyebrow">05 — Engineering</p>
         <h1 className="sec-title">CAD<br />Projects</h1>
         <p className="sec-body">3D models, engineering drawings, tooling designs, and fixture work.</p>
@@ -226,7 +212,7 @@ function CadProjects({ onBack }) {
 }
 
 /* ── Tools ── */
-function Tools({ onBack }) {
+function Tools() {
   const tools = [
     { cat: 'CAD / Design', items: ['SolidWorks', 'AutoCAD', 'Fusion 360'] },
     { cat: 'Data & Analytics', items: ['Minitab', 'Excel / Power Query', 'Power BI', 'Tableau'] },
@@ -238,8 +224,7 @@ function Tools({ onBack }) {
 
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
-      <div className="sec-inner">
+            <div className="sec-inner">
         <p className="sec-eyebrow">06 — Stack</p>
         <h1 className="sec-title">Tools</h1>
         <div className="placeholder-grid">
@@ -262,7 +247,7 @@ function Tools({ onBack }) {
 }
 
 /* ── Hobbies ── */
-function Hobbies({ onBack }) {
+function Hobbies() {
   const items = [
     { emoji: '🔩', label: 'Building Things', desc: 'Weekend projects — woodworking, home improvement, whatever needs fixing' },
     { emoji: '🎮', label: 'Gaming', desc: 'Strategy and immersive RPGs. Big Portal fan (obviously)' },
@@ -274,8 +259,7 @@ function Hobbies({ onBack }) {
 
   return (
     <div className="section-page">
-      <BackBtn onBack={onBack} />
-      <div className="sec-inner">
+            <div className="sec-inner">
         <p className="sec-eyebrow">07 — Life</p>
         <h1 className="sec-title">Hobbies</h1>
         <p className="sec-body">What I'm up to when I'm not optimizing manufacturing processes.</p>
