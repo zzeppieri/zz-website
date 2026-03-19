@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
+import CadDrawingLayer from './CadDrawingLayer'
 
 /* ── Bubble definitions ── */
 const BUBBLES = [
@@ -485,6 +486,7 @@ export default function Landing({ onNavigate, fading, crtOn, paused }) {
   const isMobile = useIsMobile()
   const shutdownTimer = useRef(null)
   const contactRef = useRef(null)
+  const containerRef = useRef(null)
 
   useEffect(() => {
     const onResize = () => setViewSize({ w: window.innerWidth, h: window.innerHeight })
@@ -535,11 +537,21 @@ export default function Landing({ onNavigate, fading, crtOn, paused }) {
 
   return (
     <div
+      ref={containerRef}
       className={fading ? 'landing-fade-out' : ''}
       style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', transition: 'opacity 0.4s ease' }}
     >
       <BgCanvas paused={paused} />
       <div className="blueprint-bg" />
+
+      {/* CAD drawing layer */}
+      <CadDrawingLayer
+        viewW={viewSize.w}
+        viewH={viewSize.h}
+        containerRef={containerRef}
+        paused={paused}
+        fading={fading}
+      />
 
       {/* Circuit board traces */}
       <CircuitSVG
