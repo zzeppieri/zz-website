@@ -6,22 +6,18 @@ function AboutMe() {
         <p className="sec-eyebrow">01 — About</p>
         <h1 className="sec-title">About<br />Me</h1>
         <p className="sec-body">
-          I'm a Lean Manufacturing Engineer and Project Manager passionate about designing
-          smarter systems, eliminating waste, and leading cross-functional teams toward
-          measurable improvement.
+          Senior continuous improvement leader and sole CI practitioner at a Tier-1 aerospace MRO through workforce reductions — promoted twice in three years and trusted with a multi-million-dollar Manufacturing Execution System (MES) program.
         </p>
         <div className="sec-divider" />
         <p className="sec-body" style={{ marginTop: '1.5rem' }}>
-          My work sits at the intersection of <strong style={{ color: 'var(--text)' }}>process engineering,
-          operational excellence, and human-centered design</strong> — combining technical rigor
-          with the ability to align people and projects around a shared goal.
+          My work sits at the intersection of <strong style={{ color: 'var(--text)' }}>lean manufacturing, MES platform implementation, and AI-augmented engineering</strong> — decomposing operations problems and shipping the production tooling the floor actually needs.
         </p>
         <div className="placeholder-grid" style={{ marginTop: '3rem' }}>
           {[
-            { label: 'Experience', value: '5+ Years', sub: 'Manufacturing & PM' },
-            { label: 'Projects Led', value: '20+', sub: 'End-to-end delivery' },
-            { label: 'Methodology', value: 'Lean', sub: 'TPS / Kaizen driven' },
-            { label: 'Certified', value: 'PMP', sub: 'Project Management' },
+            { label: 'Productivity Saved', value: '30,000+ hrs', sub: '2024–2025 across all product lines' },
+            { label: 'Kaizen Events Led', value: '29', sub: '5 sites, 5 external multi-day events' },
+            { label: 'Promotions', value: '2 in 3 yrs', sub: 'Associate → Sr CI Analyst' },
+            { label: 'Patent', value: 'Pending', sub: 'Baffle Extraction Tool (2024)' },
           ].map((c, i) => (
             <div key={c.label} className="placeholder-card" style={{ '--i': i }}>
               <div className="card-label">{c.label}</div>
@@ -39,35 +35,37 @@ function AboutMe() {
 function WorkExperience() {
   const jobs = [
     {
-      title: 'Lean Manufacturing Engineer',
-      company: 'Your Current Company',
-      period: '2022 — Present',
+      title: 'Senior Continuous Improvement Analyst',
+      company: 'Chromalloy Gas Turbine, LLC',
+      period: '2025 — Present',
       bullets: [
-        'Led value stream mapping workshops reducing cycle time by X%',
-        'Facilitated kaizen events across multiple manufacturing cells',
-        'Implemented visual management systems plant-wide',
-        'Drove 5S initiatives and standardized work documentation',
+        'Lead the Chromalloy customer side of a multi-million-dollar Tulip MES deployment at the Windsor (CT) site with PwC as implementation partner — driving Project Plan, Validation Approach, Base Layout, and core architecture decisions toward a May 2026 pilot and Sept 2026 go-live.',
+        'Architected an AI-augmented PM toolchain to run the in-flight program — custom Claude-based PM framework, offline Obsidian-style D3 knowledge graph with prompt-engineered context retention, Microsoft Copilot automations ingesting emails and Teams messages, and a Smartsheet writeback pipeline (via Model Context Protocol) for bi-weekly executive updates.',
+        'Delivered ~30,000 hours of verified productivity savings across all product lines (2024–2025), exceeding the 2025 target by 30%.',
+        'Mentored a continuous-improvement intern who was hired full-time as an engineer; preparing to manage two co-ops in 2026.',
       ],
     },
     {
-      title: 'Project Manager',
-      company: 'Previous Company',
-      period: '2020 — 2022',
+      title: 'Continuous Improvement Analyst',
+      company: 'Chromalloy Gas Turbine, LLC',
+      period: '2023 — 2025',
       bullets: [
-        'Managed portfolio of capital and CI projects from initiation to close',
-        'Improved on-time delivery rate by introducing project governance framework',
-        'Coordinated cross-functional stakeholders across 4 departments',
-        'Maintained project schedules, budgets, and risk registers',
+        'Reduced Blade Cell Gate 1 turnaround time (TAT) from 14 days to 4.75 days against a 4-day target — designed the Line of Balance board, standardized Op20 induction, and led the Wax-area improvement Kaizen.',
+        'Drove a 5S Go-To-Gemba program from a 15-point baseline to 85 points by end of 2024 — 16 Bronze, 17 Silver, and 3 Gold-rated areas.',
+        'Facilitated 29 Kaizen events across five Chromalloy sites including five external multi-day cross-functional engagements — CFM56-7B 3P, Plasma / LPPS / EPS / Vac36 TPMs, and the CSD Lean Leadership Week engine bay overhaul.',
+        'Designed and ran a Continuous Improvement Lunch-and-Learn program — 14 sessions reaching 77+ employees across all three shifts.',
+        'Designed and developed a patent-pending fixture enabling in-house baffle refurbishment — estimated $100K+ annual savings.',
+        'Sole CI practitioner at the New York site through a multi-year workforce reduction — sustained and grew the lean program\'s measurable output.',
       ],
     },
     {
-      title: 'Manufacturing Engineer',
-      company: 'Earlier Company',
-      period: '2018 — 2020',
+      title: 'Associate, Continuous Improvement Analyst',
+      company: 'Chromalloy Gas Turbine, LLC',
+      period: '2022 — 2023',
       bullets: [
-        'Supported production floor with engineering analysis and tooling design',
-        'Collaborated with quality teams on root cause analysis',
-        'Documented process workflows and work instructions',
+        'Led the deployment of a $2.4M Blade Cell capital project (CapEx approved Nov 2022) — directed a team of 20, applied 3P / cellular-flow design, and returned $350K to budget for critical spares.',
+        'Drove site fundamentals — 5S+1 deployment, Ideas Program participation, and Lean Leadership Week engagements at sister facilities.',
+        'Earned Six Sigma Green Belt certification.',
       ],
     },
   ]
@@ -77,6 +75,9 @@ function WorkExperience() {
             <div className="sec-inner">
         <p className="sec-eyebrow">02 — Career</p>
         <h1 className="sec-title">Work<br />Experience</h1>
+        <p className="sec-body" style={{ marginBottom: '2rem' }}>
+          One company. Three titles. Two promotions in three years. Same site through workforce reductions — measurable lean and operational outcomes the whole way through.
+        </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {jobs.map((j, i) => (
             <div key={i} className="job-entry" style={{ '--i': i }}>
@@ -105,12 +106,12 @@ function WorkExperience() {
 /* ── Skills ── */
 function Skills() {
   const cats = [
-    { name: 'Lean & CI', color: '#a855f7', items: ['Value Stream Mapping', 'Kaizen / PDCA', '5S Visual Management', 'Waste Elimination', 'Standardized Work'] },
-    { name: 'Project Mgmt', color: '#a855f7', items: ['Planning & Scheduling', 'Stakeholder Comms', 'Risk Management', 'Budget Tracking', 'Change Management'] },
-    { name: 'Engineering', color: '#a855f7', items: ['Root Cause Analysis', 'FMEA / DMAIC', 'Process Capability', 'SPC & Data Analysis', 'Six Sigma'] },
-    { name: 'Software', color: '#a855f7', items: ['AutoCAD / SolidWorks', 'MS Project', 'Excel / Power BI', 'SAP / Oracle ERP', 'Minitab'] },
-    { name: 'Leadership', color: '#a855f7', items: ['Team Facilitation', 'Executive Presentations', 'Mentoring & Coaching', 'Cross-functional Teams'] },
-    { name: 'Certs', color: '#a855f7', items: ['PMP Certified', 'LSSGB', 'OSHA 30-Hour', 'B.S. Industrial Engineering'] },
+    { name: 'Lean & Continuous Improvement', color: '#a855f7', items: ['Six Sigma Green Belt', 'Kaizen / K3 Facilitation', 'Value Stream Mapping', 'Total Productive Maintenance', '3P (Production-Preparation-Process)', '5S+1', 'Toyota Production System', 'Standard Work', 'Line of Balance', 'Kamishibai'] },
+    { name: 'Manufacturing Execution Systems', color: '#a855f7', items: ['Tulip MES (PM + Custom App Dev)', 'MES Router Framework Design', 'Work-Instruction Digitization', 'SyteLine ERP Integration', 'Model Context Protocol (MCP)'] },
+    { name: 'Program & Project Management', color: '#a855f7', items: ['Multi-Million-Dollar Programs', 'RACI Design', 'Risk Register / RAID', 'Vendor Commercials', 'Cross-Functional Steering', 'Change Management'] },
+    { name: 'Coaching & Training', color: '#a855f7', items: ['Lunch-and-Learn Program Design', 'Operator Coaching', 'Leadership Accountability Systems', 'Employee Ideas Program', 'People Leadership (Intern → FT Hire)'] },
+    { name: 'Software & Automation (AI-Augmented)', color: '#a855f7', items: ['Python (PySide6, SQLite)', 'JavaScript / D3.js', 'HTML / CSS', 'Power Automate + Forms', 'Claude / Copilot Orchestration'] },
+    { name: 'CAD & Engineering', color: '#a855f7', items: ['SOLIDWORKS', 'Siemens NX', 'Visio / SketchUp', '3D Printing (Production Tooling)', 'GD&T', 'FEA'] },
   ]
 
   return (
@@ -143,15 +144,16 @@ function Projects() {
     <div className="section-page">
             <div className="sec-inner">
         <p className="sec-eyebrow">04 — Work</p>
-        <h1 className="sec-title">Other<br />Projects</h1>
-        <p className="sec-body">A selection of process improvement, engineering, and project management work.</p>
+        <h1 className="sec-title">Projects</h1>
+        <p className="sec-body">Manufacturing programs, software builds, and engineered tooling shipped to production.</p>
         <div className="sec-divider" />
         <div className="placeholder-grid" style={{ marginTop: 0 }}>
           {[
-            { label: 'Process Improvement', value: 'Line Rebalancing', sub: 'Reduced cycle time 18% through cell redesign and operator cross-training' },
-            { label: 'Capital Project', value: 'Equipment Install', sub: 'Managed $2M equipment installation from RFQ through commissioning' },
-            { label: 'Quality Initiative', value: 'Defect Reduction', sub: 'Dropped scrap rate 32% using DMAIC framework and poka-yoke implementation' },
-            { label: 'Lean Deployment', value: '5S Plant-Wide', sub: 'Led facility-wide 5S rollout across 120,000 sq ft manufacturing floor' },
+            { label: 'MES Deployment · Feb 2026 → Present', value: 'Tulip MES @ Windsor, CT', sub: 'Leading a multi-million-dollar Tulip MES rollout with PwC as implementation partner. Built an AI-augmented PM toolchain — custom Claude PM framework, prompt-engineered knowledge graph, Copilot automations consuming emails / Teams, and a Smartsheet writeback pipeline (via MCP) automating bi-weekly executive updates.' },
+            { label: 'Capital Project · Nov 2022 → Jun 2023', value: 'Blade Cell — $2.4M, team of 20', sub: 'Led from CapEx approval through deployment. Cellular-flow / 3P design, cross-functional coordination, returned $350K to budget for critical spares.' },
+            { label: 'Software / Automation · 2025–2026', value: 'OEM Tracker (Python desktop + web)', sub: 'Replaced a 14 MB / 70-sheet VBA Excel macro tracker with a Python desktop app (PySide6, SQLite) distributed as a Windows executable, plus a parallel Python web version with zero external dependencies.' },
+            { label: 'Patent Pending · 2024', value: 'Baffle Extraction Tool', sub: 'Designed and developed an engineered fixture enabling in-house baffle refurbishment instead of OEM purchase — estimated $100K+/yr potential savings. Currently in patent application.' },
+            { label: 'Automation Toolkit · 2024–Present', value: 'Reporting + 3D-Printed Tooling', sub: 'Monthly reporting automation (4+ hrs → <30 min), VSM generation (>40 hrs → near zero) for ~100 operations, and dozens of 3D-printed shop-floor fixtures — including CBN boot molds delivered in under 24 hours that saved 2–3 days of vendor TAT for 59 repair blades.' },
           ].map((c, i) => (
             <div key={c.label} className="placeholder-card" style={{ cursor: 'pointer', '--i': i }}>
               <div className="card-label">{c.label}</div>
@@ -168,33 +170,30 @@ function Projects() {
           <div className="github-card-icon">💻</div>
           <div className="github-card-text">
             <div className="github-card-label">GitHub</div>
-            <div className="github-card-desc">View my code & open source work →</div>
+            <div className="github-card-desc">View my code & open-source work →</div>
           </div>
           <div className="github-card-arrow">→</div>
         </div>
-        <p style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
-          → More projects coming soon. Replace these cards with your real work!
-        </p>
       </div>
     </div>
   )
 }
 
-/* ── CAD Projects ── */
+/* ── CAD & 3D Print ── */
 function CadProjects() {
   return (
     <div className="section-page">
             <div className="sec-inner">
         <p className="sec-eyebrow">05 — Engineering</p>
-        <h1 className="sec-title">CAD<br />Projects</h1>
-        <p className="sec-body">3D models, engineering drawings, tooling designs, and fixture work.</p>
+        <h1 className="sec-title">CAD &<br />3D Print</h1>
+        <p className="sec-body">Engineered fixtures, rapid shop-floor tooling, and cellular-flow layouts. Where mechanical engineering meets the actual production floor.</p>
         <div className="sec-divider" />
         <div className="placeholder-grid" style={{ marginTop: 0 }}>
           {[
-            { label: 'SolidWorks', value: 'Fixture Design', sub: 'Custom assembly fixture reducing setup time by 40%' },
-            { label: 'AutoCAD', value: 'Floor Layout', sub: 'Optimized cell layout for new product line launch' },
-            { label: '3D Printing', value: 'Jig Prototype', sub: 'Rapid-prototyped quality inspection jig in 2 days vs 3-week lead time' },
-            { label: 'GD&T', value: 'Drawing Package', sub: 'Full engineering drawing package for machined component family' },
+            { label: 'Patent Pending', value: 'Baffle Extraction Fixture', sub: 'SOLIDWORKS design + 3D-printed prototype iterations for in-house gas turbine engine baffle removal without significant damage. Currently in patent application; follow-on automation work scoped.' },
+            { label: '3D Printing', value: 'CBN Boot Molds (<24 hr turnaround)', sub: 'Delivered in under 24 hours for 59 repair blades — saved 2–3 days of vendor TAT and replaced a $521 SLA print order.' },
+            { label: '3D Printing', value: 'Shop-Floor Fixture Library', sub: 'Dozens of in-house printed solutions — polishing-disc contamination stand, CFM blistering grit boot with positive-pressure inserts, LM9000 plasma-tape escape alignment tool, more.' },
+            { label: 'Capital Project Layouts', value: 'Cellular-Flow Design', sub: 'Blade Cell layout (3P methodology), TSTL / GE future-state capacity planning, coater prep and LPPS14 work layouts.' },
           ].map((c, i) => (
             <div key={c.label} className="placeholder-card" style={{ '--i': i }}>
               <div className="card-label">{c.label}</div>
@@ -203,9 +202,6 @@ function CadProjects() {
             </div>
           ))}
         </div>
-        <p style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
-          → Add screenshots or renderings of your actual CAD work here!
-        </p>
       </div>
     </div>
   )
@@ -214,12 +210,12 @@ function CadProjects() {
 /* ── Tools ── */
 function Tools() {
   const tools = [
-    { cat: 'CAD / Design', items: ['SolidWorks', 'AutoCAD', 'Fusion 360'] },
-    { cat: 'Data & Analytics', items: ['Minitab', 'Excel / Power Query', 'Power BI', 'Tableau'] },
-    { cat: 'Project Mgmt', items: ['MS Project', 'Smartsheet', 'Jira', 'Monday.com'] },
-    { cat: 'ERP / MES', items: ['SAP', 'Oracle', 'Plex', 'Arena PLM'] },
-    { cat: 'Lean Tools', items: ['VSM (draw.io)', 'A3 Problem Solving', 'PFMEA', 'Control Plans'] },
-    { cat: 'Productivity', items: ['Microsoft 365', 'SharePoint', 'Teams', 'Visio'] },
+    { cat: 'CAD / Design', items: ['SOLIDWORKS', 'Siemens NX', 'Visio Professional', 'SketchUp', '3D Printing (FDM)'] },
+    { cat: 'Manufacturing Systems', items: ['Tulip MES', 'SyteLine ERP', 'Model Context Protocol (MCP)', 'Smartsheet'] },
+    { cat: 'Software & Scripting', items: ['Python (PySide6, SQLite)', 'JavaScript / D3.js', 'HTML / CSS', 'PptxGenJS'] },
+    { cat: 'AI Co-Pilots', items: ['Claude (Anthropic)', 'Microsoft Copilot', 'Custom Claude PM Framework', 'AI-Augmented Engineering'] },
+    { cat: 'Data & Analytics', items: ['Minitab', 'MATLAB', 'Advanced Excel', 'Power Automate', 'Microsoft Forms'] },
+    { cat: 'Lean Tools', items: ['Value Stream Mapping', 'A3 Problem Solving', 'PFMEA', 'Kamishibai Accountability', 'Line of Balance Boards', 'T3 / T5 Tier Boards'] },
   ]
 
   return (
@@ -249,12 +245,12 @@ function Tools() {
 /* ── Hobbies ── */
 function Hobbies() {
   const items = [
-    { emoji: '🔩', label: 'Building Things', desc: 'Weekend projects — woodworking, home improvement, whatever needs fixing' },
-    { emoji: '🎮', label: 'Gaming', desc: 'Strategy and immersive RPGs. Big Portal fan (obviously)' },
-    { emoji: '🏃', label: 'Running', desc: 'Clearing my head, one mile at a time' },
-    { emoji: '📚', label: 'Reading', desc: 'Systems thinking, biographies, and the occasional sci-fi novel' },
-    { emoji: '⚙️', label: 'Continuous Improvement', desc: 'It\'s not just a job — I genuinely love optimizing everyday processes' },
-    { emoji: '🤔', label: 'Problem Solving', desc: 'Give me a tough puzzle and I\'m happy' },
+    { emoji: '🖨️', label: '3D Printing & Design', desc: 'Designing and printing — fixtures, tools, and side projects that scratch the engineering itch.' },
+    { emoji: '🎳', label: 'Bowling', desc: 'League nights and weekend games.' },
+    { emoji: '🥾', label: 'Hiking', desc: 'Trails and weekend ridge climbs around the Hudson Valley.' },
+    { emoji: '💪', label: 'Physical Fitness', desc: 'Strength and conditioning — staying sharp body and mind.' },
+    { emoji: '🎮', label: 'PC Gaming', desc: 'Strategy and immersive games when the brain needs a different problem to solve.' },
+    { emoji: '📸', label: 'Photography & Audio', desc: 'Quiet hobbies — composition and signal chains are engineering in different languages.' },
   ]
 
   return (
