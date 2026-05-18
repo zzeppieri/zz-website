@@ -4,26 +4,26 @@ import CadDrawingLayer from './CadDrawingLayer'
 /* ── Bubble definitions ── */
 const BUBBLES = [
   { id: 'about',      label: 'About Me',        angle: -110, color: '#D44638', noteColor: '#F7E98E', icon: '👤', desc: 'Who I am & what drives me',
-    callout: ['5+ Years Exp', '20+ Projects', 'PMP Certified'] },
+    callout: ['Sr CI Engineer', '4 yrs @ Chromalloy', '2 Promotions'] },
   { id: 'contact',    label: 'Contact\nMe',     angle: -70,  color: '#0277BD', noteColor: '#B3E5FC', icon: '📬', desc: 'Get in touch',
     callout: ['LinkedIn', 'Email'],
     isContact: true,
     contactOptions: [
-      { icon: '🔗', label: 'LinkedIn', url: 'https://linkedin.com/in/zacharyzeppieri' },
-      { icon: '✉️', label: 'Email', url: 'mailto:zachary@zacharyzeppieri.com' },
+      { icon: '🔗', label: 'LinkedIn', url: 'https://www.linkedin.com/in/zachary-zeppieri-5366a9170/' },
+      { icon: '✉️', label: 'Email', url: 'mailto:zzeppieri@gmail.com' },
     ] },
   { id: 'experience', label: 'Work\nExperience', angle:  -20, color: '#2E7D32', noteColor: '#BAFFC9', icon: '💼', desc: 'My professional journey',
-    callout: ['3 Roles', 'Cross-functional', 'CI & PM'] },
+    callout: ['MES PM @ Windsor', '30K hrs saved', '29 Kaizens · 5 sites'] },
   { id: 'hobbies',    label: 'Hobbies',          angle:  20,  color: '#AD1457', noteColor: '#FFB3BA', icon: '🎯', desc: 'Life outside of work',
-    callout: ['Building Things', 'Gaming', 'Running'] },
-  { id: 'projects',   label: 'Other\nProjects',  angle:  70,  color: '#1565C0', noteColor: '#BAE1FF', icon: '🚀', desc: 'Things I\'ve built & improved',
-    callout: ['Process Improvement', 'Capital Projects', 'Quality'] },
-  { id: 'cad',        label: 'CAD\nProjects',    angle:  110, color: '#E65100', noteColor: '#FFE0B2', icon: '📐', desc: '3D designs & engineering work',
-    callout: ['SolidWorks', 'AutoCAD', 'GD&T'] },
+    callout: ['3D Printing', 'Bowling', 'Hiking'] },
+  { id: 'projects',   label: 'Projects',         angle:  70,  color: '#1565C0', noteColor: '#BAE1FF', icon: '🚀', desc: 'Things I\'ve built & shipped',
+    callout: ['Tulip MES Deployment', 'Blade Cell $2.4M', 'Patent Pending'] },
+  { id: 'cad',        label: 'CAD &\n3D Print',  angle:  110, color: '#E65100', noteColor: '#FFE0B2', icon: '📐', desc: 'Engineering & rapid tooling work',
+    callout: ['SOLIDWORKS', 'Siemens NX', '3D Printing'] },
   { id: 'tools',      label: 'Tools',            angle:  160, color: '#00838F', noteColor: '#B2EBF2', icon: '🔧', desc: 'Software & methodologies I use',
-    callout: ['CAD / Design', 'Data Analytics', 'ERP / MES'] },
+    callout: ['Tulip MES', 'Python + AI', 'Lean / Six Sigma'] },
   { id: 'skills',     label: 'Skills',           angle:  200, color: '#6A1B9A', noteColor: '#E1BEE7', icon: '⚡', desc: 'What I bring to the table',
-    callout: ['Lean & CI', 'Six Sigma', 'Leadership'] },
+    callout: ['Lean / Six Sigma', 'MES + AI', 'Program Management'] },
 ]
 
 const ORBIT_R = 350
@@ -103,7 +103,7 @@ const IDLE_LINES = [
   { text: '> Status: ONLINE', cls: '' },
   { text: '', cls: '' },
   { text: '  Zachary Zeppieri', cls: 'bright' },
-  { text: '  Lean Mfg Engineer / Project Mgr', cls: '' },
+  { text: '  Sr CI Engineer / MES + AI Ops', cls: '' },
   { text: '', cls: '' },
   { text: '> Hover a note to explore...', cls: 'dim' },
 ]
@@ -410,7 +410,7 @@ function MobileLanding({ onNavigate, crtOn }) {
       <CrtTerminal hovered={null} shuttingDown={false} isMobile={true} crtOn={crtOn} />
 
       <div className="mobile-name">Zachary Zeppieri</div>
-      <div className="mobile-role">Lean Mfg Engineer · Project Manager</div>
+      <div className="mobile-role">Sr CI Engineer · Manufacturing Systems & AI-Augmented Ops</div>
 
       <div className="mobile-cards">
         {BUBBLES.map((b, i) => (
@@ -628,7 +628,7 @@ export default function Landing({ onNavigate, fading, crtOn, paused }) {
       {/* Corner branding */}
       <div className="corner-tag">
         <div className="corner-tag-name">Zachary Zeppieri</div>
-        <div className="corner-tag-role">Lean Mfg Engineer · Project Manager</div>
+        <div className="corner-tag-role">Sr CI Engineer · Manufacturing Systems & AI-Augmented Ops</div>
       </div>
       <div className="hint-tag">Hover a note to explore</div>
     </div>
