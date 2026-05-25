@@ -11,6 +11,18 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  /* Stack legend on top, simulation stage below — no overlap, ever. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* The simulation lives in its own bounded area below the legend. */
+.sk-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;          /* lets the flex child actually shrink */
+  width: 100%;
+  overflow: hidden;
 }
 
 .sk-svg {
@@ -127,38 +139,49 @@
   opacity: 0.55;
 }
 
-/* Legend */
+/* Legend — solid backdrop panel sitting ABOVE the simulation in flex flow.
+   Skill nodes can no longer render through it because there's nothing to
+   render through; the SVG only paints inside .sk-stage below. */
 .sk-legend {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 8px 12px;
+  margin: 0;
+  background: rgba(14, 26, 42, 0.92);
+  border-bottom: 1px solid rgba(78, 201, 212, 0.35);
+  color: rgba(240, 246, 255, 0.96);
   font-size: 12px;
-  color: rgba(232, 240, 250, 0.92);    /* bumped from 0.7 */
-  pointer-events: none;
-  max-width: 70%;
 }
 
 .sk-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  color: rgba(240, 246, 255, 0.96);
   font-family: 'IBM Plex Mono', monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .sk-legend-swatch {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
-  box-shadow: 0 0 6px currentColor;
+  flex-shrink: 0;
+  background: var(--sk-cluster-color, currentColor);
+  box-shadow: 0 0 6px var(--sk-cluster-color, currentColor);
 }
+
+.sk-legend-text { color: inherit; }
 
 /* Tooltip */
 .sk-tooltip {
@@ -215,10 +238,15 @@
   .sk-node.sk-blip .sk-blip-ring { animation: none; opacity: 0; }
 }
 
-/* Small screens */
-@media (max-width: 640px) {
+/* Small screens — legend wraps to 2–3 rows; never overlaps simulation. */
+@media (max-width: 700px) {
   .sk-label { font-size: 10px; stroke-width: 2.5; }
-  .sk-legend { font-size: 11px; gap: 4px 8px; max-width: 90%; }
-  .sk-legend-item { font-size: 10px; }
+  .sk-legend {
+    gap: 4px 10px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .sk-legend-item { font-size: 11px; }
+  .sk-legend-swatch { width: 9px; height: 9px; }
   .sk-tooltip { font-size: 11px; max-width: 180px; }
 }

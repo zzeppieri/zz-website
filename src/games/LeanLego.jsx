@@ -74,34 +74,51 @@ const ACHIEVEMENT_EVENT = 'achievement:lean-lego-win';
 
 /* Fixed tile dimensions used by chaosLayout to position tiles in pixels.
  * Keep in sync with .ll-tool-chaos width/height in CSS. */
-const TILE_W = 120;
-const TILE_H = 78;
+const TILE_W = 140;
+const TILE_H = 82;
 const CHAOS_PAD = 12;
 const CHAOS_TOP_PAD = 28; // leaves room for the "CHAOS ZONE" label
+
+/* Detect coarse pointer (touch) — switches the interaction mode to
+ * tap-to-select / tap-zone-to-place which is much more reliable than
+ * drag on mobile. We re-check on resize because Chrome dev-tools can
+ * flip this on the fly. */
+function detectTouchMode() {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+  } catch (e) { /* ignore */ }
+  return 'ontouchstart' in window || (navigator && navigator.maxTouchPoints > 0);
+}
 
 /* Deterministic-ish shuffled layout for the chaos zone so items don't
  * pile on top of each other. Returns {x, y} px per id. */
 function chaosLayout(items, width = 760, height = 230) {
   const layout = {};
-  const innerW = Math.max(width - CHAOS_PAD * 2, TILE_W);
-  const innerH = Math.max(height - CHAOS_TOP_PAD - CHAOS_PAD, TILE_H);
+  // On narrow chaos areas (mobile), shrink the per-tile footprint used for
+  // grid math so we still get 2 columns instead of collapsing to 1 (which
+  // creates a 12-row stack that overflows the chaos area).
+  const tileW = width < 380 ? 120 : (width < 520 ? 130 : TILE_W);
+  const tileH = width < 380 ? 78 : (width < 520 ? 84 : TILE_H);
+  const innerW = Math.max(width - CHAOS_PAD * 2, tileW);
+  const innerH = Math.max(height - CHAOS_TOP_PAD - CHAOS_PAD, tileH);
   // Compute columns/rows that fit
-  const colGap = 14;
-  const rowGap = 12;
-  const cols = Math.max(1, Math.floor((innerW + colGap) / (TILE_W + colGap)));
+  const colGap = width < 520 ? 8 : 12;
+  const rowGap = width < 520 ? 8 : 10;
+  const cols = Math.max(1, Math.floor((innerW + colGap) / (tileW + colGap)));
   const rows = Math.max(1, Math.ceil(items.length / cols));
   // Center the grid horizontally
-  const usedW = cols * TILE_W + (cols - 1) * colGap;
+  const usedW = cols * tileW + (cols - 1) * colGap;
   const startX = CHAOS_PAD + Math.max(0, Math.floor((innerW - usedW) / 2));
   const startY = CHAOS_TOP_PAD;
-  const verticalSpace = Math.max(0, innerH - rows * TILE_H);
+  const verticalSpace = Math.max(0, innerH - rows * tileH);
   const rowExtraGap = rows > 1 ? Math.min(rowGap, Math.floor(verticalSpace / (rows - 1))) : 0;
 
   items.forEach((item, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
-    const baseX = startX + col * (TILE_W + colGap);
-    const baseY = startY + row * (TILE_H + rowExtraGap);
+    const baseX = startX + col * (tileW + colGap);
+    const baseY = startY + row * (tileH + rowExtraGap);
     // jitter so it feels like clutter, not a grid (kept small to avoid overlap)
     const jitterX = ((i * 37) % 9) - 4;
     const jitterY = ((i * 53) % 7) - 3;
@@ -173,6 +190,10 @@ export default function LeanLego() {
   const [shakeId, setShakeId] = useState(null);
   const [hoverZone, setHoverZone] = useState(null);
 
+  /* ── Interaction mode ── */
+  const [touchMode, setTouchMode] = useState(() => detectTouchMode());
+  const [selectedId, setSelectedId] = useState(null); // tap-select pattern
+
   /* ── Leaderboard ── */
   const [leaderboard, setLeaderboard] = useState([]);
   const [showNameModal, setShowNameModal] = useState(false);
@@ -182,10 +203,14 @@ export default function LeanLego() {
 
   /* ── Drag state (refs to avoid re-renders during pointermove) ── */
   const dragRef = useRef(null);
-  const [dragView, setDragView] = useState(null); // {id, x, y} — drives render
+  const [dragView, setDragView] = useState(null); // {id, dx, dy} — translation delta from origin
+  const rafRef = useRef(0);
+  const pendingViewRef = useRef(null);
   const boardRef = useRef(null);
   const chaosRef = useRef(null);
   const zoneRefsRef = useRef({});
+  const flashTimeoutRef = useRef(null);
+  const shakeTimeoutRef = useRef(null);
 
   /* ── Timer ── */
   const startedAtRef = useRef(Date.now());
@@ -209,20 +234,42 @@ export default function LeanLego() {
     setLeaderboard(loadLeaderboard());
   }, []);
 
+  /* ── Watch for pointer-mode changes (responsive dev tools, hotplug) ── */
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    let mql;
+    try { mql = window.matchMedia('(pointer: coarse)'); } catch (e) { return undefined; }
+    const handler = () => setTouchMode(detectTouchMode());
+    if (mql.addEventListener) mql.addEventListener('change', handler);
+    else if (mql.addListener) mql.addListener(handler);
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener('change', handler);
+      else if (mql.removeListener) mql.removeListener(handler);
+    };
+  }, []);
+
   /* ── Reflow chaos positions when chaos size becomes known / changes ── */
   useEffect(() => {
     const el = chaosRef.current;
     if (!el) return undefined;
+    let lastWidth = 0;
     const apply = () => {
       const rect = el.getBoundingClientRect();
-      // Only auto-place ids that don't yet have a saved position (e.g. on first paint
-      // when default % positions were estimated, or on reset).
+      if (rect.width < 60) return; // chaos not yet sized
+      // Track width changes — if width hasn't changed meaningfully, only fill
+      // in missing positions (preserves user-dragged tile positions during
+      // game play). If width changed (e.g. orientation flip, first paint
+      // measuring the real container), fully reflow so the JS grid math
+      // matches the actual viewport.
+      const widthChanged = Math.abs(rect.width - lastWidth) > 8;
+      lastWidth = rect.width;
       setChaosPositions((prev) => {
         const next = { ...prev };
         const layout = chaosLayout(items, rect.width, rect.height);
         items.forEach((t) => {
           const cur = prev[t.id];
-          if (!cur || typeof cur.x !== 'number' || typeof cur.y !== 'number') {
+          const missing = !cur || typeof cur.x !== 'number' || typeof cur.y !== 'number';
+          if (missing || widthChanged) {
             next[t.id] = layout[t.id];
           }
         });
@@ -286,6 +333,7 @@ export default function LeanLego() {
     setFlash(null);
     setShakeId(null);
     setDragView(null);
+    setSelectedId(null);
     setShowNameModal(false);
     setPendingScore(null);
     dragRef.current = null;
@@ -310,6 +358,7 @@ export default function LeanLego() {
     setFlash(null);
     setShakeId(null);
     setDragView(null);
+    setSelectedId(null);
     setShowNameModal(false);
     setPendingScore(null);
     dragRef.current = null;
@@ -354,13 +403,67 @@ export default function LeanLego() {
     return null;
   }, []);
 
-  /* ── Pointer handlers ── */
+  /* ── Shared placement-decision logic (used by both drag and tap modes) ── */
+  const tryPlace = useCallback((itemId, zoneId) => {
+    const item = TOOL_LIBRARY.find((t) => t.id === itemId);
+    if (!item) return;
+    if (zoneId && zoneId === item.zone) {
+      // Correct drop — place into the zone
+      setPlacement((prev) => ({ ...prev, [item.id]: zoneId }));
+      setScore((s) => s + 1);
+      setFlash({ zoneId, kind: 'ok' });
+      if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = setTimeout(() => setFlash(null), 450);
+      tone(true);
+      return true;
+    }
+    if (zoneId) {
+      // Wrong zone — shake the tile and count an error
+      setErrors((n) => n + 1);
+      setShakeId(item.id);
+      if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
+      shakeTimeoutRef.current = setTimeout(() => setShakeId(null), 420);
+      setFlash({ zoneId, kind: 'bad' });
+      if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = setTimeout(() => setFlash(null), 450);
+      tone(false);
+      return false;
+    }
+    return false;
+  }, [tone]);
+
+  /* ── Tap-to-select / tap-zone-to-place (touch mode) ── */
+  const onToolTap = useCallback((item) => {
+    if (won) return;
+    const p = placement[item.id];
+    if (p && p !== 'chaos' && p === item.zone) return; // locked
+    setSelectedId((cur) => (cur === item.id ? null : item.id));
+  }, [placement, won]);
+
+  const onZoneTap = useCallback((zoneId) => {
+    if (won) return;
+    if (!selectedId) return;
+    const placed = tryPlace(selectedId, zoneId);
+    setSelectedId(null);
+    return placed;
+  }, [selectedId, tryPlace, won]);
+
+  /* ── Pointer-drag handlers (desktop mouse) ── */
+  const flushDragView = useCallback(() => {
+    rafRef.current = 0;
+    if (pendingViewRef.current) {
+      setDragView(pendingViewRef.current);
+    }
+  }, []);
+
   const onPointerDown = useCallback((e, item) => {
     if (won) return;
+    if (touchMode) return; // tap mode handles this via onClick
     if (placement[item.id] && placement[item.id] !== 'chaos' && placement[item.id] === item.zone) {
       // Already correctly placed — locked in.
       return;
     }
+    if (e.pointerType === 'touch') return; // safety belt — touch handled by tap mode
     e.preventDefault();
     const target = e.currentTarget;
     try { target.setPointerCapture(e.pointerId); } catch (err) { /* ok */ }
@@ -370,6 +473,8 @@ export default function LeanLego() {
     dragRef.current = {
       id: item.id,
       pointerId: e.pointerId,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
       offsetX: e.clientX - rect.left,
       offsetY: e.clientY - rect.top,
       width: rect.width,
@@ -381,16 +486,25 @@ export default function LeanLego() {
       chaosW: chaosRect ? chaosRect.width : 760,
       chaosH: chaosRect ? chaosRect.height : 230,
     };
-    setDragView({ id: item.id, x: e.clientX, y: e.clientY });
-  }, [placement, won, chaosPositions]);
+    setDragView({ id: item.id, dx: 0, dy: 0 });
+  }, [placement, won, chaosPositions, touchMode]);
 
   const onPointerMove = useCallback((e) => {
     const d = dragRef.current;
     if (!d || d.pointerId !== e.pointerId) return;
-    setDragView({ id: d.id, x: e.clientX, y: e.clientY });
+    // Translate the original tile by the delta from initial pointer position.
+    // This makes the dragged element move with the finger/cursor in real time.
+    pendingViewRef.current = {
+      id: d.id,
+      dx: e.clientX - d.startClientX,
+      dy: e.clientY - d.startClientY,
+    };
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(flushDragView);
+    }
     const z = hitZone(e.clientX, e.clientY);
     setHoverZone(z);
-  }, [hitZone]);
+  }, [hitZone, flushDragView]);
 
   const onPointerUp = useCallback((e) => {
     const d = dragRef.current;
@@ -398,29 +512,23 @@ export default function LeanLego() {
     const z = hitZone(e.clientX, e.clientY);
     const item = TOOL_LIBRARY.find((t) => t.id === d.id);
     dragRef.current = null;
+    pendingViewRef.current = null;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
     setDragView(null);
     setHoverZone(null);
 
     if (!item) return;
 
     if (z && z === item.zone) {
-      // Correct drop — place into the zone (no chaos position needed)
-      setPlacement((prev) => ({ ...prev, [item.id]: z }));
-      setScore((s) => s + 1);
-      setFlash({ zoneId: z, kind: 'ok' });
-      setTimeout(() => setFlash(null), 450);
-      tone(true);
+      tryPlace(item.id, z);
       return;
     }
 
     if (z) {
-      // Wrong zone — shake, count error, then return to wherever the user dragged it last
-      setErrors((n) => n + 1);
-      setShakeId(item.id);
-      setTimeout(() => setShakeId(null), 420);
-      setFlash({ zoneId: z, kind: 'bad' });
-      setTimeout(() => setFlash(null), 450);
-      tone(false);
+      tryPlace(item.id, z); // counts as error + shake via tryPlace
     }
 
     // For both wrong-zone and dropped-on-nothing cases: persist the
@@ -429,7 +537,7 @@ export default function LeanLego() {
     const relY = e.clientY - d.chaosTop - d.offsetY;
     const clamped = clampToChaos(relX, relY, d.chaosW, d.chaosH);
     setChaosPositions((prev) => ({ ...prev, [item.id]: clamped }));
-  }, [hitZone, tone]);
+  }, [hitZone, tryPlace]);
 
   /* ── Global pointer listeners while dragging ── */
   useEffect(() => {
@@ -446,6 +554,16 @@ export default function LeanLego() {
       window.removeEventListener('pointercancel', cancel);
     };
   }, [dragView, onPointerMove, onPointerUp]);
+
+  /* ── Cleanup all rAF + timeouts on unmount ── */
+  useEffect(() => () => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
+    if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+    if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
+  }, []);
 
   /* ── Leaderboard submit ── */
   const submitScore = useCallback((e) => {
@@ -477,11 +595,15 @@ export default function LeanLego() {
   );
   const total = TOOL_LIBRARY.length;
   const accuracy = score + errors > 0 ? Math.round((score / (score + errors)) * 100) : 100;
+  const selectedItem = useMemo(
+    () => (selectedId ? TOOL_LIBRARY.find((t) => t.id === selectedId) : null),
+    [selectedId],
+  );
 
   /* ───────────────────────────── RENDER ───────────────────────────── */
   return (
     <div className="ll-shell">
-      <div className="ll-root" ref={boardRef}>
+      <div className={`ll-root${touchMode ? ' ll-root-touch' : ''}`} ref={boardRef}>
         {/* HUD */}
         <div className="ll-hud">
           <div className="ll-hud-left">
@@ -521,27 +643,76 @@ export default function LeanLego() {
         {/* Title strip */}
         <div className="ll-title-strip">
           <span className="ll-title">LEAN LEGO</span>
-          <span className="ll-subtitle">5S Workshop · Sort · Set in Order · Shine · Standardize · Sustain</span>
+          <span className="ll-subtitle">
+            {touchMode
+              ? '5S Workshop · Tap a tool, then tap its category'
+              : '5S Workshop · Sort · Set in Order · Shine · Standardize · Sustain'}
+          </span>
         </div>
+
+        {/* Selected indicator (touch mode only) */}
+        {touchMode && (
+          <div
+            className={`ll-selected-bar${selectedItem ? ' ll-selected-bar-on' : ''}`}
+            aria-live="polite"
+          >
+            {selectedItem ? (
+              <>
+                <span className="ll-selected-label">SELECTED:</span>
+                <span className="ll-selected-icon" aria-hidden="true">{selectedItem.icon}</span>
+                <span className="ll-selected-name">{selectedItem.name}</span>
+                <button
+                  type="button"
+                  className="ll-selected-cancel"
+                  onClick={() => setSelectedId(null)}
+                  aria-label="Cancel selection"
+                >×</button>
+              </>
+            ) : (
+              <span className="ll-selected-placeholder">Tap a tool to select it</span>
+            )}
+          </div>
+        )}
 
         {/* CHAOS ZONE */}
         <div className="ll-chaos" ref={chaosRef}>
-          <div className="ll-chaos-label">CHAOS ZONE — drag tools into the correct 5S category (or rearrange here)</div>
+          <div className="ll-chaos-label">
+            {touchMode
+              ? 'CHAOS ZONE — tap a tool to select'
+              : 'CHAOS ZONE — drag tools into the correct 5S category'}
+          </div>
           {items.map((item) => {
             const placed = placement[item.id];
             if (placed && placed !== 'chaos') return null; // rendered inside its zone
             const isDragging = dragView && dragView.id === item.id;
+            const isSelected = selectedId === item.id;
             const pos = chaosPositions[item.id] || { x: 12, y: CHAOS_TOP_PAD };
             const hintZone = helpOn ? ZONES.find((z) => z.id === item.zone) : null;
+            const dx = isDragging ? dragView.dx : 0;
+            const dy = isDragging ? dragView.dy : 0;
+            const style = {
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+              transform: isDragging ? `translate(${dx}px, ${dy}px)` : undefined,
+            };
+            const classes = [
+              'll-tool',
+              'll-tool-chaos',
+              isDragging ? 'll-tool-dragging' : '',
+              isSelected ? 'll-tool-selected' : '',
+              shakeId === item.id ? 'll-tool-shake' : '',
+            ].filter(Boolean).join(' ');
             return (
               <div
                 key={item.id}
-                className={`ll-tool ll-tool-chaos${isDragging ? ' ll-tool-dragging' : ''}${shakeId === item.id ? ' ll-tool-shake' : ''}`}
-                style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
+                className={classes}
+                style={style}
                 onPointerDown={(e) => onPointerDown(e, item)}
+                onClick={() => { if (touchMode) onToolTap(item); }}
                 role="button"
                 tabIndex={0}
-                aria-label={`${item.name}, drag to a 5S zone`}
+                aria-label={`${item.name}${touchMode ? ', tap to select' : ', drag to a 5S zone'}`}
+                aria-pressed={isSelected || undefined}
               >
                 <span className="ll-tool-icon" aria-hidden="true">{item.icon}</span>
                 <span className="ll-tool-name" title={item.name}>{item.name}</span>
@@ -561,13 +732,25 @@ export default function LeanLego() {
           {ZONES.map((z) => {
             const placedHere = TOOL_LIBRARY.filter((t) => placement[t.id] === z.id);
             const isHover = hoverZone === z.id && dragView;
+            const isTarget = touchMode && selectedItem && selectedItem.zone === z.id;
             const flashing = flash && flash.zoneId === z.id ? flash.kind : null;
+            const cls = [
+              'll-zone',
+              isHover ? 'll-zone-hover' : '',
+              isTarget ? 'll-zone-target' : '',
+              touchMode && selectedItem ? 'll-zone-tappable' : '',
+              flashing ? `ll-zone-flash-${flashing}` : '',
+            ].filter(Boolean).join(' ');
             return (
               <div
                 key={z.id}
                 ref={(el) => { zoneRefsRef.current[z.id] = el; }}
-                className={`ll-zone${isHover ? ' ll-zone-hover' : ''}${flashing ? ` ll-zone-flash-${flashing}` : ''}`}
+                className={cls}
                 style={{ '--zone-color': z.color }}
+                onClick={() => { if (touchMode && selectedId) onZoneTap(z.id); }}
+                role={touchMode && selectedId ? 'button' : undefined}
+                aria-label={touchMode && selectedId ? `Place ${selectedItem?.name || 'selected tool'} in ${z.label}` : undefined}
+                tabIndex={touchMode && selectedId ? 0 : undefined}
               >
                 <div className="ll-zone-head">
                   <span className="ll-zone-label">{z.label}</span>
@@ -578,7 +761,13 @@ export default function LeanLego() {
                 </div>
                 <div className="ll-zone-slots">
                   {placedHere.length === 0 && (
-                    <div className="ll-zone-empty">drop tools here</div>
+                    <div className="ll-zone-empty">
+                      {touchMode && selectedItem && selectedItem.zone === z.id
+                        ? 'tap to place here'
+                        : touchMode && selectedItem
+                          ? 'tap if this fits'
+                          : 'drop tools here'}
+                    </div>
                   )}
                   {placedHere.map((t) => (
                     <div key={t.id} className="ll-tool ll-tool-placed" title={t.name}>
@@ -607,24 +796,6 @@ export default function LeanLego() {
             <LeaderboardList entries={leaderboard} />
           </div>
         )}
-
-        {/* DRAG GHOST — floating clone follows pointer */}
-        {dragView && (() => {
-          const item = TOOL_LIBRARY.find((t) => t.id === dragView.id);
-          const d = dragRef.current;
-          if (!item || !d) return null;
-          const left = dragView.x - d.offsetX;
-          const top = dragView.y - d.offsetY;
-          return (
-            <div
-              className="ll-drag-ghost"
-              style={{ left, top, width: d.width, height: d.height }}
-            >
-              <span className="ll-tool-icon" aria-hidden="true">{item.icon}</span>
-              <span className="ll-tool-name">{item.name}</span>
-            </div>
-          );
-        })()}
 
         {/* NAME MODAL — appears first on win, before the win card */}
         {showNameModal && pendingScore && (

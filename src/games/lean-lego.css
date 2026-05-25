@@ -136,6 +136,70 @@
   text-transform: uppercase;
 }
 
+/* ─── Selected bar (touch mode only) ─── */
+.ll-selected-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--ll-border-strong);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.25);
+  min-height: 38px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--ll-muted);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.ll-selected-bar-on {
+  border-color: var(--ll-cyan);
+  background: linear-gradient(180deg, rgba(78,201,212,0.12), rgba(0,0,0,0.25));
+  color: var(--ll-text);
+  box-shadow: 0 0 0 1px rgba(78,201,212,0.3);
+}
+.ll-selected-label {
+  color: var(--ll-cyan);
+  letter-spacing: 0.14em;
+  font-size: 13px;
+}
+.ll-selected-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.ll-selected-name {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--ll-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.ll-selected-placeholder {
+  font-style: italic;
+  opacity: 0.7;
+}
+.ll-selected-cancel {
+  background: transparent;
+  color: var(--ll-muted);
+  border: 1px solid var(--ll-border-strong);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.ll-selected-cancel:hover {
+  color: var(--ll-red);
+  border-color: var(--ll-red);
+}
+
 /* ─── Chaos zone ─── */
 .ll-chaos {
   position: relative;
@@ -146,7 +210,7 @@
   background:
     repeating-linear-gradient(45deg, rgba(255,154,60,0.04) 0 12px, transparent 12px 24px),
     rgba(0,0,0,0.18);
-  overflow: hidden;
+  overflow: visible; /* allow tile transforms to escape during drag */
   flex-shrink: 0;
 }
 .ll-chaos-label {
@@ -197,10 +261,12 @@
 /* Placed tiles inside a zone keep a single line w/ ellipsis. */
 .ll-tool-name-placed {
   white-space: nowrap;
-  max-width: 120px;
+  max-width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Chaos tiles — fixed width, icon stacked above name (2-line clamp). */
+/* Chaos tiles — fixed size, icon on top, name single-line ellipsis. */
 .ll-tool-chaos {
   position: absolute;
   cursor: grab;
@@ -209,36 +275,60 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  width: 120px;
-  height: 78px;
-  padding: 6px 8px;
+  width: 140px;
+  height: 82px;
+  padding: 6px 6px;
   text-align: center;
+  /* No transition on transform — we apply it live during drag. */
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  will-change: transform;
 }
 .ll-tool-chaos .ll-tool-icon {
-  font-size: 22px;
+  font-size: 24px;
   margin-bottom: 2px;
 }
 .ll-tool-chaos .ll-tool-name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
+  /* Single line with ellipsis — kills mid-word truncation entirely. */
+  display: block;
+  width: 100%;
+  max-width: 130px;
+  white-space: nowrap;
   overflow: hidden;
-  white-space: normal;
+  text-overflow: ellipsis;
   font-size: 10.5px;
-  line-height: 1.18;
-  word-break: break-word;
-  hyphens: auto;
-  max-width: 100%;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
 }
 .ll-tool-chaos:hover {
   border-color: var(--ll-cyan);
-  transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 0 1px rgba(78,201,212,0.25);
   z-index: 2;
 }
 .ll-tool-chaos:active { cursor: grabbing; }
-.ll-tool-dragging { opacity: 0.25; }
+
+/* While being dragged: stays fully visible, elevated, follows the pointer
+   via inline transform: translate set by JS. Disable transitions so the
+   tile sticks to the cursor with no lag. */
+.ll-tool-dragging {
+  z-index: 9999;
+  cursor: grabbing;
+  transition: none;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.55), 0 0 0 2px rgba(78,201,212,0.5);
+  border-color: var(--ll-cyan);
+  opacity: 0.95;
+}
+
+/* Tap-selected (touch mode) — pulsing cyan glow. */
+.ll-tool-selected {
+  border-color: var(--ll-cyan);
+  box-shadow: 0 0 0 2px rgba(78,201,212,0.6), 0 0 18px rgba(78,201,212,0.45);
+  animation: ll-pulse 1.4s ease-in-out infinite;
+  z-index: 3;
+}
+@keyframes ll-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(78,201,212,0.5), 0 0 14px rgba(78,201,212,0.35); }
+  50%      { box-shadow: 0 0 0 3px rgba(78,201,212,0.8), 0 0 22px rgba(78,201,212,0.6); }
+}
 
 .ll-tool-placed {
   background: linear-gradient(180deg, #1f3a2a, #1a2c22);
@@ -308,6 +398,12 @@
   transform: translateY(-1px);
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18));
 }
+/* Tap-mode: any zone is a candidate when a tool is selected. */
+.ll-zone-tappable { cursor: pointer; }
+/* Tap-mode: the correct destination zone for the selected tool. */
+.ll-zone-target {
+  box-shadow: 0 0 0 2px var(--zone-color), 0 0 24px -4px var(--zone-color);
+}
 .ll-zone-flash-ok { animation: ll-flash-ok 0.45s ease; }
 .ll-zone-flash-bad { animation: ll-flash-bad 0.45s ease; }
 @keyframes ll-flash-ok {
@@ -356,7 +452,9 @@
   gap: 6px;
   align-content: flex-start;
   flex: 1;
-  overflow: hidden;
+  min-height: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .ll-zone-slots .ll-tool-placed {
   width: 100%;
@@ -371,40 +469,12 @@
   text-transform: uppercase;
   align-self: center;
   margin: auto;
+  text-align: center;
+  padding: 4px;
 }
 
-/* ─── Drag ghost ─── */
-.ll-drag-ghost {
-  position: fixed;
-  pointer-events: none;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 8px;
-  background: linear-gradient(180deg, #2d4259, #1c283a);
-  border: 1px solid var(--ll-cyan);
-  border-radius: 6px;
-  color: var(--ll-text);
-  font-size: 10.5px;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.55), 0 0 0 2px rgba(78,201,212,0.25);
-  z-index: 9999;
-  text-align: center;
-  transform: rotate(-1deg);
-  overflow: hidden;
-}
-.ll-drag-ghost .ll-tool-icon { font-size: 22px; }
-.ll-drag-ghost .ll-tool-name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
-  overflow: hidden;
-  white-space: normal;
-  line-height: 1.18;
-}
+/* ─── Drag ghost (legacy — kept for safety, no longer rendered) ─── */
+.ll-drag-ghost { display: none; }
 
 /* ─── Win overlay ─── */
 .ll-win-overlay {
@@ -600,33 +670,84 @@
 }
 
 @media (max-width: 760px) {
-  .ll-root { min-height: 600px; }
+  .ll-root { min-height: 640px; }
   .ll-hud { padding: 8px 10px; gap: 6px; }
   .ll-hud-left, .ll-hud-right { gap: 10px; }
   .ll-hud-val { font-size: 16px; }
   .ll-title { font-size: 18px; }
   .ll-subtitle { display: none; }
-  .ll-chaos { height: 240px; margin: 8px; }
+  /* Tall enough to fit 6 rows of 2-col tiles without overflowing. */
+  .ll-chaos { height: 600px; margin: 8px; }
+  /* Let the chaos label wrap on narrow screens — single line gets truncated. */
+  .ll-chaos-label {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.25;
+    font-size: 11px;
+  }
   .ll-zones {
     grid-template-columns: 1fr;
     gap: 8px;
     padding: 0 8px 10px;
   }
-  .ll-zone { min-height: auto; padding: 8px; }
-  .ll-zone-desc { min-height: 0; }
-  .ll-zone-empty { margin: 4px 0; padding: 6px 0; }
+  /* On mobile the zones stack vertically and need a real min-height so
+     placed tiles render visibly. */
+  .ll-zone { min-height: 96px; padding: 8px; }
+  .ll-zone-desc { display: none; } /* save space — header + slots is enough */
+  .ll-zone-slots { min-height: 32px; }
+  .ll-zone-empty { margin: 4px 0; padding: 6px 0; font-size: 12px; }
   .ll-zone-label { font-size: 16px; max-width: 75%; }
   .ll-tool { font-size: 11px; padding: 6px 8px; }
   .ll-tool-icon { font-size: 16px; }
   .ll-btn { padding: 6px 10px; font-size: 14px; }
   .ll-win-title { font-size: 28px; }
   .ll-win-stats { grid-template-columns: 1fr; }
+  /* Width MUST match the per-breakpoint tileW in chaosLayout() so free-layout
+     positions tiles correctly without clipping at the chaos zone edge.
+     Mobile (<=760, >520): 130×84. Small mobile (<=380): 120×78. */
+  .ll-tool-chaos {
+    width: 130px;
+    height: 84px;
+    padding: 6px 5px;
+  }
+  .ll-tool-chaos .ll-tool-name {
+    /* Override the single-line ellipsis from base style so long names like
+       "Expired Calibration Sticker" wrap to 2 lines instead of being clipped. */
+    white-space: normal;
+    word-break: break-word;
+    text-overflow: clip;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    line-height: 1.15;
+    max-width: 118px;
+    font-size: 10.5px;
+    text-align: center;
+  }
+  .ll-tool-chaos .ll-tool-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
 }
 
 @media (max-width: 420px) {
-  .ll-chaos { height: 260px; }
+  .ll-chaos { height: 560px; }
   .ll-hud-stat { gap: 0; }
   .ll-hud-label { font-size: 11px; }
+  .ll-tool-chaos {
+    width: 120px;
+    height: 78px;
+    padding: 5px 4px;
+  }
+  .ll-tool-chaos .ll-tool-name {
+    max-width: 110px;
+    font-size: 10px;
+  }
+  .ll-tool-chaos .ll-tool-icon { font-size: 16px; }
+  .ll-selected-bar { font-size: 13px; padding: 6px 8px; gap: 8px; }
+  .ll-selected-name { font-size: 12px; }
 }
 
 /* ─── Reduced motion ─── */
@@ -635,5 +756,6 @@
   .ll-tool-shake,
   .ll-zone-flash-ok,
   .ll-zone-flash-bad,
+  .ll-tool-selected,
   .ll-win-overlay { animation: none; }
 }

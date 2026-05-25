@@ -159,6 +159,7 @@ function seedLayout(nodes, w, h) {
 /* ───────────────────────────── component ───────────────────────────────── */
 export default function SkillsConstellation() {
   const rootRef = useRef(null)
+  const stageRef = useRef(null)
   const svgRef = useRef(null)
   const rafRef = useRef(0)
   const simStateRef = useRef(null)        // mutable physics state
@@ -183,10 +184,11 @@ export default function SkillsConstellation() {
     return map
   }, [])
 
-  /* ── Measure container ──────────────────────────────────────────────── */
+  /* ── Measure the simulation stage (NOT the root, which also contains the
+       legend). This way the physics bounds match the actual SVG area. ──── */
   useLayoutEffect(() => {
-    if (!rootRef.current) return
-    const el = rootRef.current
+    const el = stageRef.current
+    if (!el) return
     const ro = new ResizeObserver((entries) => {
       for (const e of entries) {
         const w = Math.max(320, Math.floor(e.contentRect.width))
@@ -334,15 +336,23 @@ export default function SkillsConstellation() {
 
   return (
     <div className="sk-root" ref={rootRef}>
-      {/* Legend */}
-      <div className="sk-legend" aria-hidden>
+      {/* Legend — sits ABOVE the simulation in a flex column so node labels
+          can never render through it. */}
+      <div className="sk-legend" role="list" aria-label="Skill clusters">
         {Object.entries(CLUSTERS).map(([key, c]) => (
-          <span className="sk-legend-item" key={key} style={{ color: c.color }}>
-            <span className="sk-legend-swatch" />
-            {c.label}
+          <span
+            className="sk-legend-item"
+            key={key}
+            role="listitem"
+            style={{ '--sk-cluster-color': c.color }}
+          >
+            <span className="sk-legend-swatch" aria-hidden />
+            <span className="sk-legend-text">{c.label}</span>
           </span>
         ))}
       </div>
+
+      <div className="sk-stage" ref={stageRef}>
 
       <svg
         ref={svgRef}
@@ -440,6 +450,7 @@ export default function SkillsConstellation() {
           <div className="sk-tooltip-desc">{selectedMeta.desc}</div>
         </div>
       )}
+      </div>
     </div>
   )
 }
