@@ -41,6 +41,7 @@ const MODES = [
   { id: 'engine',     label: 'Engine',     short: 'ENGINE',     icon: '🛩️', desc: 'Aerospace turbine cross-section navigation.' },
   { id: 'sketchbook', label: 'Sketchbook', short: 'NOTEBOOK',   icon: '📓', desc: 'Hand-drawn lab notebook pages.' },
   { id: 'neural',     label: 'Neural',     short: 'NEURAL',     icon: '🧠', desc: '3D-feeling knowledge graph / neural net.' },
+  { id: 'magazine',   label: 'Magazine',   short: 'MAGAZINE',   icon: '📰', desc: 'Time-style cover with story callouts.' },
 ];
 
 const MODE_IDS = MODES.map((m) => m.id);
@@ -53,6 +54,7 @@ const Terminal      = lazy(() => import('../modes/Terminal.jsx'));
 const EngineDiagram = lazy(() => import('../modes/EngineDiagram.jsx'));
 const Sketchbook    = lazy(() => import('../modes/Sketchbook.jsx'));
 const Neural        = lazy(() => import('../modes/Neural.jsx'));
+const Magazine      = lazy(() => import('../modes/Magazine.jsx'));
 
 /* ── Context ─────────────────────────────────────────────────────── */
 const ModeCtx = createContext(null);
@@ -252,6 +254,7 @@ export function ModeHost() {
     case 'engine':     Comp = EngineDiagram; break;
     case 'sketchbook': Comp = Sketchbook;    break;
     case 'neural':     Comp = Neural;        break;
+    case 'magazine':   Comp = Magazine;      break;
     default:           Comp = null;
   }
   if (!Comp) return null;

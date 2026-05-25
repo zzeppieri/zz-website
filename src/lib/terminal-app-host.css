@@ -1,0 +1,191 @@
+/* ============================================================
+   TerminalAppHost overlay styles
+   Greens + dark navy to match the Terminal CRT aesthetic.
+   ============================================================ */
+
+.tah-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10050; /* above .tm-root (9999) so it sits on top of the terminal */
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px) saturate(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: tah-fade-in 160ms ease-out;
+}
+
+.tah-frame {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  max-height: 90vh;
+  background: #0a1228;
+  color: #aaffbb;
+  border: 1px solid rgba(102, 255, 170, 0.55);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(102, 255, 170, 0.12),
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    inset 0 0 60px rgba(74, 255, 124, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  outline: none;
+  animation: tah-pop-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  font-family: 'VT323', 'IBM Plex Mono', 'Cascadia Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+}
+
+.tah-frame:focus-visible {
+  border-color: rgba(102, 255, 170, 0.9);
+  box-shadow:
+    0 0 0 2px rgba(102, 255, 170, 0.35),
+    0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.tah-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #0e1a36 0%, #0a1228 100%);
+  border-bottom: 1px solid rgba(102, 255, 170, 0.25);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+.tah-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #aaffbb;
+  text-shadow: 0 0 8px rgba(102, 255, 170, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tah-prompt {
+  color: #66ffaa;
+  font-weight: 700;
+}
+.tah-path {
+  color: #2da854;
+}
+.tah-app-name {
+  color: #66ffaa;
+  font-weight: 700;
+}
+
+.tah-close {
+  flex: 0 0 auto;
+  appearance: none;
+  background: transparent;
+  color: #66ffaa;
+  border: 1px solid rgba(102, 255, 170, 0.5);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  padding: 6px 12px;
+  min-height: 36px; /* touch target */
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+.tah-close:hover,
+.tah-close:focus-visible {
+  background: rgba(102, 255, 170, 0.15);
+  color: #d4ffe2;
+  border-color: rgba(170, 255, 187, 0.9);
+  outline: none;
+}
+.tah-close:active {
+  transform: translateY(1px);
+}
+
+/* ── Body ───────────────────────────────────────────────────── */
+.tah-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  background: #050a18;
+  padding: 16px;
+  /* Ensure embedded games (canvases, grids) can size to the frame */
+  display: flex;
+  flex-direction: column;
+}
+
+.tah-body > * {
+  width: 100%;
+}
+
+/* ── Suspense fallback ──────────────────────────────────────── */
+.tah-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  flex: 1 1 auto;
+}
+.tah-fallback-text {
+  color: #66ffaa;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px rgba(102, 255, 170, 0.5);
+  animation: tah-blink 1s steps(2, start) infinite;
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes tah-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes tah-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+@keyframes tah-blink {
+  to { opacity: 0.35; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .tah-backdrop,
+  .tah-frame,
+  .tah-fallback-text {
+    animation: none !important;
+  }
+}
+
+/* ── Mobile / small viewports ───────────────────────────────── */
+@media (max-width: 720px) {
+  .tah-backdrop {
+    padding: 0;
+  }
+  .tah-frame {
+    max-width: 100%;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .tah-header {
+    padding: 12px 12px;
+    font-size: 15px;
+  }
+  .tah-close {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .tah-body {
+    padding: 10px;
+  }
+}

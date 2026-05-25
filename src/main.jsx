@@ -5,6 +5,8 @@ import { DevModeProvider, DevModeHUD } from './lib/DevMode.jsx'
 import { AchievementsProvider, AchievementsHUD, useAchievements } from './lib/Achievements.jsx'
 import { AudioProvider, AudioHUD, useAudio } from './lib/Audio.jsx'
 import { ModeProvider, ModeSwitcher, ModeHost, useMode } from './lib/Mode.jsx'
+import TerminalAppHost from './lib/TerminalAppHost.jsx'
+import ShortcutsOverlay from './lib/Shortcuts.jsx'
 import ThemeSwitcher from './widgets/ThemeSwitcher.jsx'
 import './index.css'
 
@@ -90,6 +92,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <ThemeSwitcher />
             <ModeSwitcher />
             <SafeModeHost />
+            <TerminalAppHost />
+            <ShortcutsOverlay />
           </DevModeProvider>
         </AchievementsProvider>
       </AudioProvider>

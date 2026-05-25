@@ -1,0 +1,459 @@
+/* =========================================================================
+   shortcuts.css — scoped styles for <ShortcutsOverlay />
+   All classes use the .sc- prefix to avoid collisions with other HUDs.
+
+   Visual contract:
+     • Modal panel: dark navy #0e1a2a, cyan accent border, rounded 6px
+     • Headers: IBM Plex Mono, uppercase, cyan accent
+     • <kbd> chips: tiny monospace pill with subtle box-shadow
+     • Backdrop: semi-transparent black + backdrop-blur
+   ========================================================================= */
+
+/* ---- Local CSS variables (fallbacks for sites without the theme) ------- */
+.sc-trigger,
+.sc-backdrop {
+  --sc-bg:        #0e1a2a;
+  --sc-bg-2:      #0a1320;
+  --sc-border:    #1f3550;
+  --sc-accent:    #4ec9d4;
+  --sc-accent-2:  #7adfe8;
+  --sc-text:      #e0e8f0;
+  --sc-text-dim:  #8aa0b8;
+  --sc-kbd-bg:    #16243a;
+  --sc-kbd-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 2px 4px rgba(0,0,0,0.55);
+  --sc-font-mono: var(--font-mono, 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+/* ---- Floating "?" trigger button (bottom-right, desktop only) ---------- */
+.sc-trigger {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 9998;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--sc-border);
+  background: var(--sc-bg);
+  color: var(--sc-accent);
+  font-family: var(--sc-font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  opacity: 0.72;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+
+.sc-trigger:hover,
+.sc-trigger:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: var(--sc-accent);
+  outline: none;
+}
+
+.sc-trigger:focus-visible {
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.45),
+    0 0 0 2px rgba(78, 201, 212, 0.45);
+}
+
+.sc-trigger--active {
+  background: var(--sc-accent);
+  color: var(--sc-bg);
+  border-color: var(--sc-accent);
+  opacity: 1;
+}
+
+/* Hide the floating "?" on small screens (the JS also gates it,
+   this is belt+suspenders). */
+@media (max-width: 720px) {
+  .sc-trigger { display: none !important; }
+}
+
+/* ---- Backdrop ---------------------------------------------------------- */
+.sc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 8, 16, 0.62);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  animation: sc-fade-in 140ms ease-out both;
+}
+
+@keyframes sc-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---- Modal panel ------------------------------------------------------- */
+.sc-panel {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+  background: var(--sc-bg);
+  color: var(--sc-text);
+  border: 1px solid var(--sc-accent);
+  border-radius: 6px;
+  font-family: var(--sc-font-mono);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(78, 201, 212, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+  animation: sc-pop-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes sc-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ---- Header ------------------------------------------------------------ */
+.sc-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--sc-border);
+  background: linear-gradient(180deg, rgba(78, 201, 212, 0.05), transparent);
+}
+
+.sc-panel__title-block {
+  min-width: 0;
+}
+
+.sc-panel__title {
+  margin: 0;
+  font-family: var(--sc-font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sc-accent);
+}
+
+.sc-panel__title::before {
+  content: '> ';
+  color: var(--sc-accent-2);
+  opacity: 0.75;
+}
+
+.sc-panel__subtitle {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--sc-text-dim);
+}
+
+.sc-panel__close {
+  flex: 0 0 auto;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--sc-border);
+  border-radius: 4px;
+  color: var(--sc-text-dim);
+  width: 30px;
+  height: 30px;
+  font-family: var(--sc-font-mono);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.sc-panel__close:hover,
+.sc-panel__close:focus-visible {
+  color: var(--sc-accent);
+  border-color: var(--sc-accent);
+  background: rgba(78, 201, 212, 0.08);
+  outline: none;
+}
+
+/* ---- Body (scrollable) ------------------------------------------------- */
+.sc-panel__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 18px 22px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sc-border) transparent;
+}
+
+.sc-panel__body::-webkit-scrollbar { width: 8px; }
+.sc-panel__body::-webkit-scrollbar-track { background: transparent; }
+.sc-panel__body::-webkit-scrollbar-thumb {
+  background: var(--sc-border);
+  border-radius: 4px;
+}
+.sc-panel__body::-webkit-scrollbar-thumb:hover { background: var(--sc-accent); }
+
+/* ---- Sections ---------------------------------------------------------- */
+.sc-section {
+  padding: 12px 0 18px;
+  border-bottom: 1px dashed rgba(31, 53, 80, 0.7);
+}
+
+.sc-section:last-child {
+  border-bottom: none;
+}
+
+.sc-section__heading {
+  margin: 0 0 10px;
+  font-family: var(--sc-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sc-accent);
+}
+
+.sc-section__heading::before {
+  content: '── ';
+  color: var(--sc-border);
+}
+
+.sc-section__hint {
+  margin: -4px 0 12px;
+  font-size: 11.5px;
+  color: var(--sc-text-dim);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Mode chips -------------------------------------------------------- */
+.sc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sc-chip {
+  appearance: none;
+  background: var(--sc-kbd-bg);
+  color: var(--sc-text);
+  border: 1px solid var(--sc-border);
+  border-radius: 4px;
+  padding: 7px 12px;
+  font-family: var(--sc-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 140ms ease;
+}
+
+.sc-chip:hover,
+.sc-chip:focus-visible {
+  color: var(--sc-accent);
+  border-color: var(--sc-accent);
+  background: rgba(78, 201, 212, 0.08);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.sc-chip--active {
+  color: var(--sc-bg);
+  background: var(--sc-accent);
+  border-color: var(--sc-accent);
+}
+
+.sc-chip--active:hover,
+.sc-chip--active:focus-visible {
+  color: var(--sc-bg);
+  background: var(--sc-accent-2);
+  border-color: var(--sc-accent-2);
+}
+
+/* ---- Shortcut rows ----------------------------------------------------- */
+.sc-rows {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, max-content) 1fr;
+  gap: 8px 18px;
+  align-items: baseline;
+}
+
+.sc-row {
+  display: contents;
+}
+
+.sc-row__keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sc-text);
+}
+
+.sc-row__desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--sc-text);
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+.sc-row__or {
+  font-size: 10.5px;
+  color: var(--sc-text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 2px;
+}
+
+/* ---- Key combo + <kbd> ------------------------------------------------- */
+.sc-combo {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sc-combo__plus {
+  font-size: 10px;
+  color: var(--sc-text-dim);
+  padding: 0 1px;
+}
+
+.sc-kbd,
+.sc-inline-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--sc-kbd-bg);
+  border: 1px solid var(--sc-border);
+  border-bottom-width: 2px;
+  color: var(--sc-text);
+  font-family: var(--sc-font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  box-shadow: var(--sc-kbd-shadow);
+  white-space: nowrap;
+}
+
+.sc-inline-kbd {
+  min-width: 18px;
+  min-height: 18px;
+  padding: 1px 6px;
+  font-size: 10px;
+  margin: 0 1px;
+  vertical-align: baseline;
+}
+
+/* ---- Footer ------------------------------------------------------------ */
+.sc-panel__footer {
+  padding: 12px 22px 14px;
+  border-top: 1px solid var(--sc-border);
+  background: rgba(10, 19, 32, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sc-panel__footer-hint {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sc-text-dim);
+}
+
+/* ---- Mobile-responsive tweaks ----------------------------------------- */
+@media (max-width: 720px) {
+  .sc-backdrop {
+    padding: 12px;
+  }
+
+  .sc-panel {
+    max-height: 92vh;
+    border-radius: 6px;
+  }
+
+  .sc-panel__header {
+    padding: 14px 16px 12px;
+  }
+
+  .sc-panel__title { font-size: 13px; }
+  .sc-panel__subtitle { font-size: 11px; }
+
+  .sc-panel__body {
+    padding: 14px 16px 4px;
+  }
+
+  /* Stack key+desc instead of side-by-side on narrow screens */
+  .sc-rows {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+
+  .sc-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(31, 53, 80, 0.4);
+  }
+
+  .sc-row:last-child {
+    border-bottom: none;
+  }
+
+  .sc-row__desc {
+    font-size: 12px;
+  }
+
+  .sc-panel__footer {
+    padding: 10px 16px 12px;
+  }
+}
+
+/* ---- Reduced motion --------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .sc-backdrop,
+  .sc-panel,
+  .sc-trigger,
+  .sc-chip,
+  .sc-panel__close {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .sc-trigger:hover,
+  .sc-trigger:focus-visible,
+  .sc-chip:hover,
+  .sc-chip:focus-visible {
+    transform: none !important;
+  }
+}
+
+/* ---- High-contrast tightening ----------------------------------------- */
+@media (prefers-contrast: more) {
+  .sc-panel { border-width: 2px; }
+  .sc-kbd, .sc-inline-kbd { border-width: 2px; }
+  .sc-chip { border-width: 2px; }
+}
