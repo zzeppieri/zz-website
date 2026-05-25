@@ -102,9 +102,35 @@ export function ModeProvider({ children }) {
     setModeState(nextId);
   }, []);
 
+  const cycleMode = useCallback((direction = 1) => {
+    setModeState((curr) => {
+      const idx = MODE_IDS.indexOf(curr);
+      const next = MODE_IDS[(idx + direction + MODE_IDS.length) % MODE_IDS.length];
+      return next;
+    });
+  }, []);
+
+  // Keyboard mode-cycle: `m` cycles forward, `Shift+m` cycles backward.
+  // Skipped if focus is in an input / contentEditable so we don't fight
+  // the terminal mode's input field or any other typing surface.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'm' && e.key !== 'M') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      const isTyping =
+        t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if (isTyping) return;
+      e.preventDefault();
+      cycleMode(e.shiftKey ? -1 : 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [cycleMode]);
+
   const value = useMemo(
-    () => ({ mode, setMode, modes: MODES }),
-    [mode, setMode]
+    () => ({ mode, setMode, cycleMode, modes: MODES }),
+    [mode, setMode, cycleMode]
   );
 
   return <ModeCtx.Provider value={value}>{children}</ModeCtx.Provider>;
