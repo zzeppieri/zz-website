@@ -1,0 +1,284 @@
+/* ─── ResumeButton — retro CRT-styled download CTA ───────────────────── */
+/* All rules prefixed with .rb- to avoid colliding with the host page.    */
+
+.rb-button {
+  /* CSS-var locals so the component is portable even off the global theme */
+  --rb-bg: #0e1a14;
+  --rb-bg-glow: #122a1c;
+  --rb-green: #7fdb9c;
+  --rb-green-hot: #33ff33;
+  --rb-green-dim: #1a6b1a;
+  --rb-gold: #f7e98e;
+  --rb-amber: #ffd24a;
+  --rb-text: #d8ffd8;
+  --rb-border: #2f5a3a;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  min-height: 64px; /* >= 44px touch target with room to spare */
+  padding: 12px 22px;
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--rb-bg-glow) 0%, var(--rb-bg) 70%),
+    var(--rb-bg);
+  color: var(--rb-text);
+  font-family: 'VT323', 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 2px solid var(--rb-green);
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate; /* contain the glow layer */
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    color 180ms ease;
+  box-shadow:
+    0 0 0 1px rgba(127, 219, 156, 0.25),
+    0 0 18px rgba(127, 219, 156, 0.18),
+    inset 0 0 22px rgba(51, 255, 51, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.55);
+}
+
+/* Subtle corner brackets — old terminal vibe */
+.rb-button::before,
+.rb-button::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--rb-green);
+  pointer-events: none;
+  opacity: 0.85;
+}
+.rb-button::before {
+  top: 4px;
+  left: 4px;
+  border-right: none;
+  border-bottom: none;
+}
+.rb-button::after {
+  bottom: 4px;
+  right: 4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Scanlines overlay */
+.rb-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(127, 219, 156, 0.05) 0px,
+    rgba(127, 219, 156, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+  z-index: 1;
+}
+
+/* Soft inner glow blob that lifts on hover */
+.rb-glow {
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 110%,
+    rgba(51, 255, 51, 0.22) 0%,
+    rgba(51, 255, 51, 0) 60%
+  );
+  opacity: 0.7;
+  transition: opacity 220ms ease, transform 280ms ease;
+  z-index: 0;
+}
+
+.rb-content {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rb-icon {
+  flex-shrink: 0;
+  color: var(--rb-green);
+  filter: drop-shadow(0 0 4px rgba(51, 255, 51, 0.55));
+  transition: transform 220ms ease, color 180ms ease, filter 220ms ease;
+}
+
+.rb-label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+.rb-line {
+  display: block;
+  text-shadow:
+    0 0 6px rgba(51, 255, 51, 0.55),
+    0 0 1px rgba(127, 219, 156, 0.8);
+}
+.rb-line-1 {
+  font-size: 14px;
+  color: var(--rb-gold);
+  letter-spacing: 0.22em;
+  text-shadow:
+    0 0 6px rgba(247, 233, 142, 0.45),
+    0 0 1px rgba(247, 233, 142, 0.9);
+}
+.rb-line-2 {
+  font-size: 22px;
+  color: var(--rb-green);
+  letter-spacing: 0.14em;
+}
+
+/* ─── Hover ─── */
+@media (hover: hover) {
+  .rb-button:hover {
+    transform: scale(1.04);
+    border-color: var(--rb-green-hot);
+    color: #ffffff;
+    box-shadow:
+      0 0 0 1px rgba(51, 255, 51, 0.4),
+      0 0 28px rgba(51, 255, 51, 0.35),
+      0 0 60px rgba(127, 219, 156, 0.18),
+      inset 0 0 32px rgba(51, 255, 51, 0.16),
+      0 10px 22px rgba(0, 0, 0, 0.6);
+  }
+  .rb-button:hover .rb-glow {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+  .rb-button:hover .rb-icon {
+    transform: translateY(2px);
+    color: var(--rb-green-hot);
+    filter: drop-shadow(0 0 8px rgba(51, 255, 51, 0.9));
+  }
+  .rb-button:hover .rb-line-2 {
+    color: var(--rb-green-hot);
+  }
+}
+
+.rb-button:focus-visible {
+  outline: none;
+  border-color: var(--rb-amber);
+  box-shadow:
+    0 0 0 2px rgba(255, 210, 74, 0.65),
+    0 0 24px rgba(255, 210, 74, 0.35),
+    inset 0 0 22px rgba(51, 255, 51, 0.1);
+}
+
+.rb-button:active {
+  transform: scale(0.98);
+  box-shadow:
+    0 0 0 1px rgba(51, 255, 51, 0.5),
+    0 0 14px rgba(51, 255, 51, 0.25),
+    inset 0 0 28px rgba(51, 255, 51, 0.22),
+    0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Downloading state ─── */
+.rb-is-downloading {
+  border-color: var(--rb-amber);
+  color: var(--rb-amber);
+  cursor: progress;
+  animation: rb-pulse 1.1s ease-in-out infinite;
+}
+.rb-is-downloading .rb-line-1,
+.rb-is-downloading .rb-line-2 {
+  color: var(--rb-amber);
+  text-shadow:
+    0 0 6px rgba(255, 210, 74, 0.6),
+    0 0 1px rgba(255, 210, 74, 0.9);
+}
+.rb-is-downloading .rb-icon {
+  color: var(--rb-amber);
+  filter: drop-shadow(0 0 6px rgba(255, 210, 74, 0.8));
+  animation: rb-icon-bob 0.9s ease-in-out infinite;
+}
+
+.rb-dots span {
+  display: inline-block;
+  opacity: 0.2;
+  animation: rb-dot 1.2s steps(1, end) infinite;
+}
+.rb-dots span:nth-child(1) { animation-delay: 0s; }
+.rb-dots span:nth-child(2) { animation-delay: 0.2s; }
+.rb-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes rb-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 210, 74, 0.35),
+      0 0 18px rgba(255, 210, 74, 0.25),
+      inset 0 0 22px rgba(255, 210, 74, 0.1),
+      0 6px 16px rgba(0, 0, 0, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 210, 74, 0.55),
+      0 0 32px rgba(255, 210, 74, 0.45),
+      inset 0 0 32px rgba(255, 210, 74, 0.22),
+      0 8px 20px rgba(0, 0, 0, 0.6);
+  }
+}
+
+@keyframes rb-icon-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(3px); }
+}
+
+@keyframes rb-dot {
+  0%, 60%, 100% { opacity: 0.2; }
+  20%, 50%      { opacity: 1; }
+}
+
+/* ─── Confetti canvas ─── */
+.rb-confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .rb-button,
+  .rb-button .rb-glow,
+  .rb-button .rb-icon,
+  .rb-is-downloading,
+  .rb-is-downloading .rb-icon,
+  .rb-dots span {
+    transition: none !important;
+    animation: none !important;
+  }
+  .rb-button:hover { transform: none; }
+  .rb-button:active { transform: none; }
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 480px) {
+  .rb-button {
+    min-width: 200px;
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+  .rb-line-1 { font-size: 13px; }
+  .rb-line-2 { font-size: 20px; }
+}

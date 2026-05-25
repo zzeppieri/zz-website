@@ -1,16 +1,41 @@
+import { useEffect } from 'react'
+import { DevEditable } from './lib/DevMode'
+import StatsCard from './widgets/StatsCard'
+import CircuitSnake from './games/CircuitSnake'
+import PrinterSim from './games/PrinterSim'
+import CareerTimeline from './widgets/CareerTimeline'
+import ProductivityCounter from './widgets/ProductivityCounter'
+import SkillsConstellation from './widgets/SkillsConstellation'
+import LeanLego from './games/LeanLego'
+import ResumeButton from './widgets/ResumeButton'
+import ActivityFeed from './widgets/ActivityFeed'
+import ScrambleText from './effects/ScrambleText'
+
+/* ── Helper: dispatch section-visited event on mount (drives achievements) ── */
+function useSectionVisit(id) {
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('achievement:section-visited', { detail: { id } }))
+  }, [id])
+}
+
 /* ── About Me ── */
 function AboutMe() {
+  useSectionVisit('about')
   return (
     <div className="section-page">
       <div className="sec-inner">
-        <p className="sec-eyebrow">01 — About</p>
-        <h1 className="sec-title">About<br />Me</h1>
+        <p className="sec-eyebrow"><DevEditable id="about.eyebrow">01 — About</DevEditable></p>
+        <h1 className="sec-title"><DevEditable id="about.title">About<br />Me</DevEditable></h1>
         <p className="sec-body">
-          Senior continuous improvement leader and sole CI practitioner at a Tier-1 aerospace MRO through workforce reductions — promoted twice in three years and trusted with a multi-million-dollar Manufacturing Execution System (MES) program.
+          <DevEditable id="about.body1">
+            Senior continuous improvement leader and sole CI practitioner at a Tier-1 aerospace MRO through workforce reductions — promoted twice in three years and trusted with a multi-million-dollar Manufacturing Execution System (MES) program.
+          </DevEditable>
         </p>
         <div className="sec-divider" />
         <p className="sec-body" style={{ marginTop: '1.5rem' }}>
-          My work sits at the intersection of <strong style={{ color: 'var(--text)' }}>lean manufacturing, MES platform implementation, and AI-augmented engineering</strong> — decomposing operations problems and shipping the production tooling the floor actually needs.
+          <DevEditable id="about.body2">
+            My work sits at the intersection of lean manufacturing, MES platform implementation, and AI-augmented engineering — decomposing operations problems and shipping the production tooling the floor actually needs.
+          </DevEditable>
         </p>
         <div className="placeholder-grid" style={{ marginTop: '3rem' }}>
           {[
@@ -26,6 +51,23 @@ function AboutMe() {
             </div>
           ))}
         </div>
+
+        {/* Live productivity counter */}
+        <div style={{ marginTop: '3rem', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
+          <p className="sec-eyebrow" style={{ textAlign: 'center' }}>live · cumulative impact</p>
+          <ProductivityCounter />
+        </div>
+
+        {/* Career Stats Card — Pokemon-style holographic widget */}
+        <div style={{ marginTop: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <p className="sec-eyebrow" style={{ textAlign: 'center' }}>collectible · 001/001</p>
+          <StatsCard />
+        </div>
+
+        {/* Resume download with celebration */}
+        <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center' }}>
+          <ResumeButton />
+        </div>
       </div>
     </div>
   )
@@ -33,6 +75,7 @@ function AboutMe() {
 
 /* ── Work Experience ── */
 function WorkExperience() {
+  useSectionVisit('experience')
   const jobs = [
     {
       title: 'Senior Continuous Improvement Analyst',
@@ -98,6 +141,15 @@ function WorkExperience() {
             </div>
           ))}
         </div>
+
+        {/* Interactive career timeline — 2022 → Q4 2026 */}
+        <div style={{ marginTop: '3rem' }}>
+          <p className="sec-eyebrow">interactive · scroll, drag, or click stops</p>
+          <h2 className="sec-title" style={{ fontSize: '2rem', marginBottom: '1.25rem' }}>Career<br/>Timeline</h2>
+          <div style={{ width: '100%', height: 'clamp(520px, 70vh, 680px)' }}>
+            <CareerTimeline />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -105,6 +157,7 @@ function WorkExperience() {
 
 /* ── Skills ── */
 function Skills() {
+  useSectionVisit('skills')
   const cats = [
     { name: 'Lean & Continuous Improvement', color: '#a855f7', items: ['Six Sigma Green Belt', 'Kaizen / K3 Facilitation', 'Value Stream Mapping', 'Total Productive Maintenance', '3P (Production-Preparation-Process)', '5S+1', 'Toyota Production System', 'Standard Work', 'Line of Balance', 'Kamishibai'] },
     { name: 'Manufacturing Execution Systems', color: '#a855f7', items: ['Tulip MES (PM + Custom App Dev)', 'MES Router Framework Design', 'Work-Instruction Digitization', 'SyteLine ERP Integration', 'Model Context Protocol (MCP)'] },
@@ -133,6 +186,15 @@ function Skills() {
             </div>
           ))}
         </div>
+
+        {/* Interactive skills constellation — force-directed graph */}
+        <div style={{ marginTop: '3rem' }}>
+          <p className="sec-eyebrow">interactive · drag a node, hover to highlight cluster</p>
+          <h2 className="sec-title" style={{ fontSize: '2rem', marginBottom: '1.25rem' }}>Skills<br/>Constellation</h2>
+          <div style={{ width: '100%', height: 560 }}>
+            <SkillsConstellation />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -140,6 +202,7 @@ function Skills() {
 
 /* ── Projects ── */
 function Projects() {
+  useSectionVisit('projects')
   return (
     <div className="section-page">
             <div className="sec-inner">
@@ -181,6 +244,7 @@ function Projects() {
 
 /* ── CAD & 3D Print ── */
 function CadProjects() {
+  useSectionVisit('cad')
   return (
     <div className="section-page">
             <div className="sec-inner">
@@ -202,6 +266,13 @@ function CadProjects() {
             </div>
           ))}
         </div>
+
+        {/* 3D Printer Simulator — interactive demo */}
+        <div style={{ marginTop: '3rem' }}>
+          <p className="sec-eyebrow">live demo · click a part and press start</p>
+          <h2 className="sec-title" style={{ fontSize: '2rem', marginBottom: '1.25rem' }}>3D Print<br/>Simulator</h2>
+          <PrinterSim />
+        </div>
       </div>
     </div>
   )
@@ -209,6 +280,8 @@ function CadProjects() {
 
 /* ── Tools ── */
 function Tools() {
+  useSectionVisit('tools')
+
   const tools = [
     { cat: 'CAD / Design', items: ['SOLIDWORKS', 'Siemens NX', 'Visio Professional', 'SketchUp', '3D Printing (FDM)'] },
     { cat: 'Manufacturing Systems', items: ['Tulip MES', 'SyteLine ERP', 'Model Context Protocol (MCP)', 'Smartsheet'] },
@@ -221,7 +294,7 @@ function Tools() {
   return (
     <div className="section-page">
             <div className="sec-inner">
-        <p className="sec-eyebrow">06 — Stack</p>
+        <p className="sec-eyebrow"><ScrambleText text="06 — Stack" duration={600} /></p>
         <h1 className="sec-title">Tools</h1>
         <div className="placeholder-grid">
           {tools.map((t, i) => (
@@ -237,6 +310,11 @@ function Tools() {
             </div>
           ))}
         </div>
+
+        {/* Live activity feed */}
+        <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center' }}>
+          <ActivityFeed />
+        </div>
       </div>
     </div>
   )
@@ -244,6 +322,7 @@ function Tools() {
 
 /* ── Hobbies ── */
 function Hobbies() {
+  useSectionVisit('hobbies')
   const items = [
     { emoji: '🖨️', label: '3D Printing & Design', desc: 'Designing and printing — fixtures, tools, and side projects that scratch the engineering itch.' },
     { emoji: '🎳', label: 'Bowling', desc: 'League nights and weekend games.' },
@@ -256,7 +335,7 @@ function Hobbies() {
   return (
     <div className="section-page">
             <div className="sec-inner">
-        <p className="sec-eyebrow">07 — Life</p>
+        <p className="sec-eyebrow"><ScrambleText text="07 — Life" duration={600} /></p>
         <h1 className="sec-title">Hobbies</h1>
         <p className="sec-body">What I'm up to when I'm not optimizing manufacturing processes.</p>
         <div className="placeholder-grid" style={{ marginTop: '2rem' }}>
@@ -267,6 +346,22 @@ function Hobbies() {
               <div className="card-sub" style={{ marginTop: '0.3rem' }}>{h.desc}</div>
             </div>
           ))}
+        </div>
+
+        {/* Snake on a Circuit Board — easter-egg mini game */}
+        <div style={{ marginTop: '3rem' }}>
+          <p className="sec-eyebrow">easter egg · arrow keys or swipe</p>
+          <h2 className="sec-title" style={{ fontSize: '2rem', marginBottom: '1.25rem' }}>Snake on a<br/>Circuit Board</h2>
+          <CircuitSnake />
+        </div>
+
+        {/* Lean Lego — 5S drag-and-drop puzzle game */}
+        <div style={{ marginTop: '3rem' }}>
+          <p className="sec-eyebrow">on-brand mini-game · drag tools into the correct 5S zones</p>
+          <h2 className="sec-title" style={{ fontSize: '2rem', marginBottom: '1.25rem' }}>Lean Lego<br/>5S Workshop</h2>
+          <div style={{ width: '100%', maxWidth: 1100, height: 720, margin: '0 auto' }}>
+            <LeanLego />
+          </div>
         </div>
       </div>
     </div>

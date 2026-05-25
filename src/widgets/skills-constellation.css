@@ -1,0 +1,222 @@
+/* ─── Skills Constellation ─── */
+.sk-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #0e1828 0%, #060c16 100%);
+  border: 1px solid rgba(78, 201, 212, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: 'IBM Plex Mono', 'VT323', monospace;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.sk-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+.sk-svg:active { cursor: grabbing; }
+
+/* Background field — faint grid lines */
+.sk-grid-line {
+  stroke: rgba(78, 201, 212, 0.06);
+  stroke-width: 1;
+}
+
+/* Edges */
+.sk-edge {
+  stroke: rgba(140, 180, 210, 0.18);
+  stroke-width: 1;
+  fill: none;
+  transition: stroke 180ms ease, stroke-width 180ms ease, opacity 180ms ease;
+  pointer-events: none;
+}
+
+.sk-edge.sk-edge-hi {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.4;
+}
+
+.sk-edge.sk-edge-dim {
+  opacity: 0.08;
+}
+
+/* Nodes */
+.sk-node {
+  cursor: grab;
+  transition: opacity 200ms ease;
+}
+
+.sk-node.sk-dragging { cursor: grabbing; }
+
+.sk-node-glow {
+  fill: currentColor;
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 220ms ease;
+  pointer-events: none;
+}
+
+.sk-node.sk-hi .sk-node-glow,
+.sk-node.sk-blip .sk-node-glow {
+  opacity: 0.55;
+}
+
+.sk-node-core {
+  fill: #0a121f;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  transition: stroke-width 180ms ease, fill 180ms ease;
+}
+
+.sk-node.sk-hi .sk-node-core {
+  fill: currentColor;
+  stroke-width: 2;
+}
+
+.sk-node.sk-dim {
+  opacity: 0.22;
+}
+
+/* Blip pulse on click */
+.sk-blip-ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sk-node.sk-blip .sk-blip-ring {
+  animation: sk-blip 600ms ease-out forwards;
+}
+
+@keyframes sk-blip {
+  0%   { opacity: 0.9; r: var(--sk-r, 7); }
+  100% { opacity: 0;   r: calc(var(--sk-r, 7) * 4); }
+}
+
+/* Labels */
+.sk-label {
+  fill: rgba(220, 232, 244, 0.78);
+  font-family: 'IBM Plex Mono', 'VT323', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(6, 12, 22, 0.85);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  transition: fill 180ms ease, opacity 180ms ease;
+}
+
+.sk-node.sk-hi .sk-label {
+  fill: #ffffff;
+  font-weight: 600;
+}
+
+.sk-node.sk-dim .sk-label {
+  opacity: 0.4;
+}
+
+/* Legend */
+.sk-legend {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 11px;
+  color: rgba(220, 232, 244, 0.7);
+  pointer-events: none;
+  max-width: 70%;
+}
+
+.sk-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.sk-legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* Tooltip */
+.sk-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(10, 18, 31, 0.96);
+  border: 1px solid rgba(78, 201, 212, 0.45);
+  color: #e0e8f0;
+  padding: 8px 10px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  max-width: 220px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.5) inset;
+  opacity: 0;
+  transform: translate(-50%, -110%);
+  transition: opacity 160ms ease;
+  z-index: 4;
+  white-space: normal;
+}
+
+.sk-tooltip.sk-tooltip-show { opacity: 1; }
+
+.sk-tooltip-title {
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 3px;
+  letter-spacing: 0.03em;
+}
+
+.sk-tooltip-cluster {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  margin-bottom: 5px;
+}
+
+.sk-tooltip-desc {
+  color: rgba(220, 232, 244, 0.85);
+  font-size: 10.5px;
+}
+
+/* Reduced motion: simple static look */
+@media (prefers-reduced-motion: reduce) {
+  .sk-edge,
+  .sk-node-core,
+  .sk-node-glow,
+  .sk-label {
+    transition: none;
+  }
+  .sk-node.sk-blip .sk-blip-ring { animation: none; opacity: 0; }
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+  .sk-label { font-size: 9px; stroke-width: 2.5; }
+  .sk-legend { font-size: 9px; gap: 4px 8px; max-width: 90%; }
+  .sk-legend-item { font-size: 9px; }
+  .sk-tooltip { font-size: 10px; max-width: 180px; }
+}

@@ -1,0 +1,343 @@
+/* ─── ProductivityCounter — scoped under .pc- ─────────────────────────
+ * Matches site palette: dark navy + CRT green + amber accents.
+ * Designed for a recommended container width of 480–640px on desktop,
+ * collapses to a stacked column under ~500px.
+ * ─────────────────────────────────────────────────────────────────── */
+
+.pc-panel {
+  --pc-bg: #0a1a0a;
+  --pc-bg-2: #0f1f14;
+  --pc-frame: linear-gradient(145deg, #3a3a3a 0%, #1a1a1a 50%, #2a2a2a 100%);
+  --pc-green: #7fdb9c;
+  --pc-green-bright: #a8f5be;
+  --pc-green-dim: #4a8f60;
+  --pc-amber: #ffb454;
+  --pc-amber-dim: #8a5f2c;
+  --pc-text-dim: rgba(127, 219, 156, 0.55);
+  --pc-text-mute: rgba(127, 219, 156, 0.35);
+  --pc-divider: rgba(127, 219, 156, 0.15);
+  --pc-cell-bg: #051208;
+  --pc-cell-shadow: rgba(127, 219, 156, 0.18);
+
+  position: relative;
+  width: 100%;
+  background: var(--pc-frame);
+  border-radius: 10px;
+  padding: 18px 18px 14px;
+  box-shadow:
+    4px 6px 20px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 40px rgba(127, 219, 156, 0.05);
+  font-family: 'VT323', 'IBM Plex Mono', ui-monospace, monospace;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Inner CRT "screen" surface */
+.pc-panel::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 6px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(127, 219, 156, 0.06), transparent 70%),
+    linear-gradient(180deg, var(--pc-bg-2), var(--pc-bg));
+  box-shadow:
+    inset 0 0 60px rgba(127, 219, 156, 0.05),
+    inset 0 0 25px rgba(0, 0, 0, 0.6);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Scanline overlay — repeating horizontal stripes */
+.pc-scanlines {
+  position: absolute;
+  inset: 14px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.18) 2px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+}
+
+/* Subtle vignette so corners feel curved */
+.pc-vignette {
+  position: absolute;
+  inset: 14px;
+  border-radius: 6px;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Header bar ────────────────────────────────────────────────────── */
+.pc-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.2rem 0.5rem 0.55rem;
+  border-bottom: 1px solid var(--pc-divider);
+  margin: 0.1rem 0.25rem 0.7rem;
+}
+
+.pc-live {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pc-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pc-green-dim);
+  box-shadow: 0 0 0 rgba(127, 219, 156, 0);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.pc-live-dot.on {
+  background: var(--pc-green-bright);
+  box-shadow:
+    0 0 8px rgba(127, 219, 156, 0.85),
+    0 0 14px rgba(127, 219, 156, 0.4);
+}
+
+.pc-live-text {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pc-green-bright);
+  text-shadow: 0 0 6px rgba(127, 219, 156, 0.4);
+}
+.pc-paused .pc-live-text {
+  color: var(--pc-amber);
+  text-shadow: 0 0 6px rgba(255, 180, 84, 0.35);
+}
+
+/* Signal bars */
+.pc-signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  height: 12px;
+}
+.pc-signal span {
+  width: 3px;
+  background: var(--pc-green-dim);
+  border-radius: 1px;
+}
+.pc-signal span:nth-child(1) { height: 30%; }
+.pc-signal span:nth-child(2) { height: 55%; }
+.pc-signal span:nth-child(3) { height: 80%; background: var(--pc-green); }
+.pc-signal span:nth-child(4) { height: 100%; background: var(--pc-green-bright); box-shadow: 0 0 4px rgba(127, 219, 156, 0.6); }
+
+.pc-channel {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pc-text-dim);
+}
+
+/* ── Readout rows ─────────────────────────────────────────────────── */
+.pc-readouts {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.pc-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.2rem 0.2rem;
+}
+
+.pc-readout--primary {
+  grid-column: 1 / -1;
+  border-bottom: 1px dashed var(--pc-divider);
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.15rem;
+}
+
+.pc-label {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pc-text-dim);
+  text-align: center;
+  line-height: 1.3;
+}
+.pc-readout--primary .pc-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: var(--pc-green);
+}
+
+/* ── Digit row + split-flap cells ─────────────────────────────────── */
+.pc-digits {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.pc-cell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.7em;
+  padding: 0.05em 0.18em;
+  font-size: 2.4rem;
+  background: var(--pc-cell-bg);
+  border-radius: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.5),
+    0 0 6px var(--pc-cell-shadow);
+  color: var(--pc-green-bright);
+  text-shadow:
+    0 0 6px rgba(127, 219, 156, 0.55),
+    0 0 14px rgba(127, 219, 156, 0.25);
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Horizontal seam line down the middle — sells the split-flap look */
+.pc-cell::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.pc-cell-inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* Separator cells (commas, colons) — narrower, no panel */
+.pc-cell.pc-sep {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  min-width: 0;
+  padding: 0 0.05em;
+  color: var(--pc-green-dim);
+  text-shadow: 0 0 4px rgba(127, 219, 156, 0.25);
+}
+.pc-cell.pc-sep::after { display: none; }
+
+/* Secondary readouts use smaller cells */
+.pc-readout:not(.pc-readout--primary) .pc-cell {
+  font-size: 1.55rem;
+  min-width: 0.65em;
+  padding: 0.05em 0.14em;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────── */
+.pc-footer {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.5rem 0.1rem;
+  margin: 0.5rem 0.25rem 0;
+  border-top: 1px solid var(--pc-divider);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pc-text-mute);
+}
+
+.pc-footer-tag {
+  color: var(--pc-amber);
+  text-shadow: 0 0 4px rgba(255, 180, 84, 0.4);
+  letter-spacing: 0.25em;
+}
+
+.pc-footer-bar {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--pc-divider), transparent);
+}
+
+/* Paused state: dim everything slightly */
+.pc-paused .pc-cell {
+  color: var(--pc-green-dim);
+  text-shadow: 0 0 4px rgba(127, 219, 156, 0.2);
+}
+.pc-paused .pc-cell.pc-sep { color: var(--pc-text-mute); }
+
+/* ── Mobile (< 500px): stack readouts, scale type down ───────────── */
+@media (max-width: 500px) {
+  .pc-panel {
+    padding: 14px 14px 10px;
+  }
+  .pc-scanlines, .pc-vignette, .pc-panel::before {
+    inset: 10px;
+  }
+  .pc-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.45rem;
+    margin: 0.1rem 0.15rem 0.55rem;
+  }
+  .pc-channel {
+    font-size: 0.48rem;
+    flex-basis: 100%;
+    text-align: right;
+    margin-top: -0.15rem;
+  }
+  .pc-readouts {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .pc-readout--primary {
+    padding-bottom: 0.5rem;
+  }
+  .pc-cell {
+    font-size: 1.85rem;
+    min-width: 0.65em;
+    padding: 0.05em 0.14em;
+  }
+  .pc-readout:not(.pc-readout--primary) .pc-cell {
+    font-size: 1.3rem;
+  }
+  .pc-readout--primary .pc-label {
+    font-size: 0.54rem;
+  }
+}
+
+/* ── Respect reduced motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .pc-live-dot,
+  .pc-live-dot.on {
+    transition: none;
+  }
+}

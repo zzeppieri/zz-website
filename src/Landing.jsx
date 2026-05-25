@@ -1,5 +1,52 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import CadDrawingLayer from './CadDrawingLayer'
+import { useStickyParallax } from './effects/useStickyParallax'
+import './effects/sticky-parallax.css'
+
+/* ── StickyBubble — extracted sub-component to host the parallax hook ── */
+function StickyBubble({ b, i, active, x, y, rot, externalRef, onMouseEnter, onMouseLeave, onClick, onKeyDown, onFocus, onBlur }) {
+  const localRef = useRef(null)
+  useStickyParallax(localRef, { maxTilt: 12, lerp: 0.12 })
+
+  const setRef = useCallback((el) => {
+    localRef.current = el
+    if (externalRef) externalRef.current = el
+  }, [externalRef])
+
+  return (
+    <div
+      ref={setRef}
+      role="button"
+      tabIndex={0}
+      aria-label={b.label.replace('\n', ' ')}
+      className={`sticky-bubble sticky-bubble--parallax ${active ? 'active' : ''}`}
+      style={{
+        position: 'absolute',
+        left: `calc(50% + ${x}px)`,
+        top:  `calc(50% + ${y}px)`,
+        zIndex: 10,
+        '--note-bg': b.noteColor,
+        '--note-color': b.color,
+        '--rot': `${rot}deg`,
+        '--float-dur': `${3.5 + i * 0.22}s`,
+        '--float-delay': `${i * 0.15}s`,
+        animation: `floatBubble var(--float-dur) ease-in-out var(--float-delay) infinite ${active ? 'paused' : 'running'}`,
+      }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    >
+      <div className="sticky-pin" />
+      <div className="sticky-note">
+        <span className="sticky-icon">{b.icon}</span>
+        <span className="sticky-label">{b.label.replace('\n', ' ')}</span>
+      </div>
+    </div>
+  )
+}
 
 /* ── Bubble definitions ── */
 const BUBBLES = [
@@ -590,38 +637,22 @@ export default function Landing({ onNavigate, fading, crtOn, paused }) {
         const rot = NOTE_ROTATIONS[i]
 
         return (
-          <div
+          <StickyBubble
             key={b.id}
-            ref={b.isContact ? contactRef : undefined}
-            role="button"
-            tabIndex={0}
-            aria-label={b.label.replace('\n', ' ')}
-            className={`sticky-bubble ${active ? 'active' : ''}`}
-            style={{
-              position: 'absolute',
-              left: `calc(50% + ${x}px)`,
-              top:  `calc(50% + ${y}px)`,
-              zIndex: 10,
-              '--note-bg': b.noteColor,
-              '--note-color': b.color,
-              '--rot': `${rot}deg`,
-              '--float-dur': `${3.5 + i * 0.22}s`,
-              '--float-delay': `${i * 0.15}s`,
-              animation: `floatBubble var(--float-dur) ease-in-out var(--float-delay) infinite ${active ? 'paused' : 'running'}`,
-            }}
+            b={b}
+            i={i}
+            active={active}
+            x={x}
+            y={y}
+            rot={rot}
+            externalRef={b.isContact ? contactRef : undefined}
             onMouseEnter={() => setHovered(b)}
             onMouseLeave={() => setHovered(null)}
             onClick={() => handleClick(b)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(b) } }}
             onFocus={() => setHovered(b)}
             onBlur={() => setHovered(null)}
-          >
-            <div className="sticky-pin" />
-            <div className="sticky-note">
-              <span className="sticky-icon">{b.icon}</span>
-              <span className="sticky-label">{b.label.replace('\n', ' ')}</span>
-            </div>
-          </div>
+          />
         )
       })}
 

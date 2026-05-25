@@ -998,7 +998,9 @@ body {
 .mobile-landing {
   position: fixed;
   inset: 0;
-  overflow: hidden;
+  /* Allow scrolling so the 8 nav cards aren't clipped on short phones. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   align-items: center;

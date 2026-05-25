@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect, Component } from 'react'
 import Landing from './Landing'
 import Sections from './sections'
+import Konami from './effects/Konami'
+import ParticleField from './effects/ParticleField'
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -133,6 +135,8 @@ export default function App() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      <ParticleField />
+      <Konami />
       {showLanding && (
         <Landing
           onNavigate={navigateTo}

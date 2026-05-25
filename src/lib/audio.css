@@ -1,0 +1,136 @@
+/* ────────────────────────────────────────────────────────────
+   audio.css — scoped styles for <AudioHUD />
+   All classes use the .au- prefix to avoid collisions.
+   Aesthetic mirrors the site: dark navy + CRT green/amber +
+   IBM Plex Mono / VT323 terminal feel.
+   ──────────────────────────────────────────────────────────── */
+
+.au-hud {
+  /* placement: top-right, tucked below the achievements HUD */
+  position: fixed;
+  top: 64px;
+  right: 14px;
+  z-index: 9999;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 10px;
+  min-height: 32px;
+
+  font-family: 'IBM Plex Mono', 'VT323', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  color: #33ff33;                     /* CRT green */
+  background: rgba(10, 26, 10, 0.78); /* term-bg-ish, translucent */
+  border: 1px solid rgba(51, 255, 51, 0.45);
+  border-radius: 4px;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(51, 255, 51, 0.08),
+    0 0 12px rgba(51, 255, 51, 0.15);
+
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease,
+    box-shadow 160ms ease,
+    transform 120ms ease;
+}
+
+.au-hud:hover {
+  border-color: rgba(51, 255, 51, 0.85);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(51, 255, 51, 0.18),
+    0 0 18px rgba(51, 255, 51, 0.32);
+}
+
+.au-hud:active {
+  transform: translateY(1px);
+}
+
+.au-hud:focus-visible {
+  outline: 2px solid rgba(51, 255, 51, 0.85);
+  outline-offset: 2px;
+}
+
+/* ── OFF state: amber/dim, no glow ─────────────────────────── */
+.au-hud--off {
+  color: #8899aa;
+  border-color: rgba(136, 153, 170, 0.4);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(136, 153, 170, 0.08);
+}
+
+.au-hud--off:hover {
+  color: #b8c4d0;
+  border-color: rgba(184, 196, 208, 0.6);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(184, 196, 208, 0.12);
+}
+
+/* ── ON state: a subtle pulse so users notice audio is live ── */
+.au-hud--on {
+  animation: au-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes au-pulse {
+  0%, 100% {
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.35),
+      inset 0 0 0 1px rgba(51, 255, 51, 0.08),
+      0 0 12px rgba(51, 255, 51, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.35),
+      inset 0 0 0 1px rgba(51, 255, 51, 0.18),
+      0 0 22px rgba(51, 255, 51, 0.42);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .au-hud--on { animation: none; }
+  .au-hud { transition: none; }
+}
+
+/* ── inner pieces ──────────────────────────────────────────── */
+.au-hud__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.au-hud__label {
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── mobile: bigger tap target, hide the text to save room ─ */
+@media (max-width: 520px) {
+  .au-hud {
+    top: 60px;
+    right: 10px;
+    min-height: 36px;
+    min-width: 36px;
+    padding: 8px;
+    font-size: 10px;
+  }
+  .au-hud__label { display: none; }
+}
