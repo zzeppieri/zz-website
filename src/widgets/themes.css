@@ -270,28 +270,12 @@ html, body {
   color: var(--accent, #ff6b4a);
 }
 
-/* ---- Mobile niceties ---- */
+/* ---- Mobile: hide the theme switcher entirely ----
+   Per user direction — top-right HUD cluster (Achievements + Audio) is
+   enough on mobile; the theme switcher adds clutter without enough room. */
 @media (max-width: 640px) {
-  /* Keep the switcher anchored to top-right with the other HUDs even on mobile.
-     The previous override here re-anchored to bottom-left, causing the
-     container to stretch the full viewport (top + right + bottom + left all
-     set) and overlap the terminal. */
   .zz-theme-switcher {
-    top: 114px;
-    right: 10px;
-    /* Force these unset so the container hugs its content width. */
-    bottom: auto;
-    left: auto;
-  }
-  .zz-theme-switcher__puck {
-    /* Shrink the puck label on narrow screens so it stays inside the viewport. */
-    padding: 8px 12px;
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    gap: 6px;
-  }
-  .zz-theme-switcher__panel {
-    min-width: 200px;
+    display: none !important;
   }
 }
 
