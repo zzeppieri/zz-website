@@ -1,0 +1,748 @@
+/* ============================================================
+   sketchbook.css — hand-drawn lab notebook portfolio mode
+
+   Goals:
+   - Cream paper, faint horizontal rules, red vertical margin
+   - Handwritten typography (Caveat / Architects Daughter / Patrick Hand)
+   - Scroll-snap, smooth scroll, prefers-reduced-motion respected
+   - Self-contained; assumes Sketchbook.jsx mounts <Sketchbook />
+   ============================================================ */
+
+/* ---- Root takeover --------------------------------------- */
+.sk-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #ede6cb;
+  color: #1a1a1a;
+  font-family: 'Caveat', 'Patrick Hand', 'Architects Daughter',
+    'Bradley Hand', 'Comic Sans MS', cursive;
+  /* slight ambient warmth */
+  background-image:
+    radial-gradient(1200px 600px at 20% -10%, rgba(255, 244, 200, 0.6) 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, rgba(206, 178, 120, 0.35) 0%, transparent 60%);
+  overflow: hidden;
+}
+
+.sk-handwriting {
+  font-family: 'Caveat', 'Patrick Hand', 'Architects Daughter',
+    'Bradley Hand', 'Comic Sans MS', cursive;
+  font-size: 1.35rem;
+  line-height: 1.45;
+  letter-spacing: 0.2px;
+}
+
+.sk-handwriting-big {
+  font-family: 'Caveat', 'Architects Daughter', 'Bradley Hand', cursive;
+  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1;
+  letter-spacing: 0.4px;
+}
+
+/* ---- Scroll container ------------------------------------ */
+.sk-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sk-root.is-reduced .sk-scroll {
+  scroll-behavior: auto;
+}
+
+.sk-scroll::-webkit-scrollbar { width: 10px; }
+.sk-scroll::-webkit-scrollbar-track { background: transparent; }
+.sk-scroll::-webkit-scrollbar-thumb {
+  background: rgba(60, 50, 30, 0.25);
+  border-radius: 6px;
+}
+
+/* ---- Page (full viewport) -------------------------------- */
+.sk-page {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 64px 7vw 64px 12vw;
+  box-sizing: border-box;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Paper background — ruled lines + subtle noise dots */
+.sk-page-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-color: #f3eed7;
+  background-image:
+    /* faint noise via tiny radial dots */
+    radial-gradient(rgba(60, 50, 20, 0.04) 1px, transparent 1px),
+    /* horizontal ruled lines */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      rgba(60, 90, 140, 0.18) 32px
+    );
+  background-size: 12px 12px, 100% 32px;
+  background-position: 0 0, 0 0;
+  box-shadow:
+    inset 0 0 60px rgba(120, 100, 60, 0.12),
+    inset 0 0 220px rgba(120, 100, 60, 0.08);
+}
+
+/* Red vertical margin line */
+.sk-page-margin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9vw;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(190, 60, 60, 0.75) 0%,
+    rgba(190, 60, 60, 0.85) 70%,
+    rgba(190, 60, 60, 0.6) 100%
+  );
+  box-shadow: 0 0 4px rgba(190, 60, 60, 0.25);
+  z-index: -1;
+}
+
+/* Page number marker (top-right corner) */
+.sk-page-number {
+  position: absolute;
+  top: 18px;
+  right: 28px;
+  font-family: 'Patrick Hand', 'Caveat', 'Bradley Hand', cursive;
+  font-size: 0.95rem;
+  color: rgba(60, 50, 20, 0.55);
+  letter-spacing: 0.5px;
+  z-index: 2;
+  transform: rotate(-2deg);
+}
+
+.sk-page-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* ---- Titles + underlines --------------------------------- */
+.sk-title {
+  margin: 14px 0 8px;
+  display: inline-block;
+  position: relative;
+}
+
+.sk-title .sk-title-sub {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-left: 14px;
+  color: rgba(60, 50, 20, 0.7);
+}
+
+.sk-title-underline {
+  display: block;
+  width: 380px;
+  max-width: 100%;
+  height: 14px;
+  margin-top: -6px;
+}
+
+.sk-heading {
+  margin: 12px 0 4px;
+  display: inline-block;
+}
+
+.sk-underline-wrap {
+  margin: -8px 0 24px;
+}
+.sk-underline-wrap svg {
+  display: block;
+  width: 260px;
+  max-width: 100%;
+  height: 10px;
+}
+
+/* ---- Prose ------------------------------------------------ */
+.sk-prose {
+  max-width: 38ch;
+}
+.sk-prose p { margin: 8px 0; }
+.sk-prose u { text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.sk-prose strong { font-weight: 700; }
+.sk-aside { font-size: 1.1rem; color: rgba(60, 50, 20, 0.65); }
+
+.sk-subtitle {
+  font-size: 1.6rem;
+  margin: 4px 0 18px;
+}
+
+/* ---- Rows / layout helpers ------------------------------- */
+.sk-row {
+  display: flex;
+  gap: 36px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.sk-row-portrait .sk-prose { flex: 1 1 320px; padding-top: 12px; }
+.sk-row-pdca { align-items: center; }
+.sk-row-stack-aside { margin-top: 30px; align-items: flex-start; }
+
+/* ---- Polaroid -------------------------------------------- */
+.sk-polaroid {
+  flex: 0 0 240px;
+  width: 240px;
+  background: #fefcf3;
+  padding: 14px 14px 36px;
+  position: relative;
+  transform: rotate(var(--rot, -3deg));
+  box-shadow:
+    0 14px 26px rgba(40, 30, 10, 0.22),
+    0 2px 4px rgba(40, 30, 10, 0.12);
+  border: none;
+  cursor: pointer;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  font-family: inherit;
+}
+.sk-polaroid:hover {
+  transform: rotate(calc(var(--rot, -3deg) + 1deg)) translateY(-6px);
+  box-shadow:
+    0 24px 36px rgba(40, 30, 10, 0.28),
+    0 4px 8px rgba(40, 30, 10, 0.14);
+}
+.sk-polaroid:focus-visible { outline: 2px dashed #1a1a1a; outline-offset: 4px; }
+
+.sk-polaroid-photo {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #dfd9c0;
+  overflow: hidden;
+  position: relative;
+}
+.sk-portrait { display: block; width: 100%; height: 100%; }
+
+.sk-polaroid-caption {
+  position: absolute;
+  bottom: 6px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Patrick Hand', 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: #2a2a2a;
+  letter-spacing: 0.4px;
+}
+
+/* ---- Tape strips ----------------------------------------- */
+.sk-tape {
+  position: absolute;
+  height: 22px;
+  transform: translateX(-50%) rotate(var(--tape-rot, -8deg));
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.15) 0 4px,
+      transparent 4px 8px
+    ),
+    var(--tape-color, #f3e8a8);
+  opacity: 0.85;
+  box-shadow: 0 2px 4px rgba(40, 30, 10, 0.15);
+  border-left: 1px dashed rgba(0, 0, 0, 0.12);
+  border-right: 1px dashed rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---- Sticky note ----------------------------------------- */
+.sk-sticky {
+  display: inline-block;
+  background: var(--bg, #fff59a);
+  padding: 14px 16px;
+  min-width: 180px;
+  max-width: 240px;
+  transform: rotate(var(--rot, 3deg));
+  box-shadow:
+    0 10px 18px rgba(40, 30, 10, 0.22),
+    0 2px 4px rgba(40, 30, 10, 0.12),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.04);
+  font-family: 'Patrick Hand', 'Caveat', cursive;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  color: #2a2a2a;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.sk-sticky:hover {
+  transform: rotate(calc(var(--rot, 3deg) + 1deg)) translateY(-4px);
+  box-shadow:
+    0 18px 28px rgba(40, 30, 10, 0.26),
+    0 4px 8px rgba(40, 30, 10, 0.14);
+}
+.sk-sticky:focus-visible { outline: 2px dashed #1a1a1a; outline-offset: 4px; }
+
+.sk-root.is-lifted .sk-sticky,
+.sk-root.is-lifted .sk-polaroid {
+  /* very subtle pulse when a sticky/polaroid is lifted */
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.18));
+}
+
+/* ---- Sticky area (page 1) -------------------------------- */
+.sk-sticky-area-1 {
+  position: relative;
+  margin-top: 30px;
+  min-height: 130px;
+}
+.sk-arrow-1 { position: absolute; top: -10px; left: 40%; pointer-events: none; }
+.sk-sticky-1 { position: absolute; top: 30px; left: calc(40% + 200px); }
+
+/* ---- Margin doodles -------------------------------------- */
+.sk-margin-doodle,
+.sk-md-1, .sk-md-2, .sk-md-3, .sk-md-4 {
+  position: absolute;
+  color: rgba(40, 30, 10, 0.55);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 2;
+}
+.sk-md-1 { top: 18%; right: 6vw; transform: rotate(-12deg); }
+.sk-md-2 { bottom: 16%; right: 9vw; transform: rotate(8deg); }
+.sk-md-3 { top: 12%; right: 6vw; transform: rotate(-8deg); }
+.sk-md-4 { bottom: 10%; right: 8vw; transform: rotate(14deg); }
+
+/* doodle grid for page 2 */
+.sk-margin-doodles {
+  position: absolute;
+  top: 24%;
+  right: 4vw;
+  width: 130px;
+  height: 280px;
+  pointer-events: none;
+  color: rgba(40, 30, 10, 0.55);
+}
+.sk-margin-doodles > * { position: absolute; }
+.sk-md-a { top: 0; right: 30px; transform: rotate(-14deg); }
+.sk-md-b { top: 70px; right: 0; transform: rotate(10deg); }
+.sk-md-c { top: 140px; right: 18px; font-size: 1.6rem; transform: rotate(-6deg); }
+.sk-md-d { top: 178px; right: 8px; font-size: 1.9rem; font-weight: 700; transform: rotate(4deg); letter-spacing: 1px; }
+.sk-md-e { top: 230px; right: 24px; transform: rotate(12deg); }
+
+/* ---- PDCA + Flow (page 2) -------------------------------- */
+.sk-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: baseline;
+  font-size: 1.9rem;
+  margin: 8px 0 30px;
+}
+.sk-flow-step {
+  display: inline-block;
+  padding: 2px 6px;
+  border-bottom: 2px solid #1a1a1a;
+}
+.sk-flow-arrow { font-size: 2.2rem; color: #a64a1a; }
+
+.sk-pdca {
+  flex: 0 0 220px;
+  transform: rotate(-3deg);
+}
+.sk-quote {
+  font-size: 1.7rem;
+  line-height: 1.2;
+  font-style: italic;
+  margin: 6px 0;
+}
+.sk-quote-mark { font-size: 2rem; color: #a64a1a; }
+.sk-quote-attr {
+  font-size: 1.1rem;
+  color: rgba(40, 30, 10, 0.6);
+  margin: 0 0 12px;
+}
+
+/* ---- Timeline (page 3) ----------------------------------- */
+.sk-timeline {
+  position: relative;
+  margin: 32px 0 36px;
+  padding: 90px 16px 110px;
+  min-height: 280px;
+}
+.sk-timeline-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 20px;
+  width: 100%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.sk-timeline-node {
+  position: absolute;
+  top: 50%;
+  left: var(--pct);
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+}
+.sk-timeline-dot {
+  width: 14px;
+  height: 14px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  margin: -7px 0 0 -7px;
+  box-shadow: 0 0 0 4px #f3eed7, 0 0 0 5px rgba(190, 60, 60, 0.5);
+  position: absolute;
+  top: 0; left: 0;
+}
+.sk-timeline-card {
+  position: absolute;
+  left: 0;
+  transform: translateX(-50%);
+  width: 180px;
+  text-align: center;
+}
+.sk-tc-top { bottom: 18px; }
+.sk-tc-bot { top: 18px; }
+
+.sk-tc-year {
+  font-size: 2rem;
+  color: #a64a1a;
+}
+.sk-tc-title { font-size: 1.2rem; }
+.sk-tc-detail-sm {
+  font-size: 1rem;
+  color: rgba(40, 30, 10, 0.65);
+}
+
+/* ---- Gauges ---------------------------------------------- */
+.sk-gauges {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.sk-gauge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: rotate(-1.5deg);
+}
+.sk-gauge-wrap:nth-child(2) { transform: rotate(1.5deg); }
+.sk-gauge-wrap:nth-child(3) { transform: rotate(-0.5deg); }
+.sk-gauge-cap { font-size: 1.15rem; color: rgba(40, 30, 10, 0.7); }
+
+/* ---- AI stack diagram (page 4) --------------------------- */
+.sk-stack-diagram {
+  position: relative;
+  width: 280px;
+  height: 220px;
+  margin: 12px 0 24px;
+}
+.sk-stack-box {
+  position: absolute;
+  width: 80px;
+  height: 48px;
+  background: #fefcf3;
+  border: 2px solid #1a1a1a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Patrick Hand', 'Caveat', cursive;
+  font-size: 1.15rem;
+  box-shadow: 2px 3px 0 #1a1a1a;
+}
+.sk-sb-claude { top: 0; left: 20px; transform: rotate(-2deg); }
+.sk-sb-copilot { top: 0; right: 20px; transform: rotate(2deg); }
+.sk-sb-smartsheet { bottom: 0; left: 20px; transform: rotate(2deg); }
+.sk-sb-tulip { bottom: 0; right: 20px; transform: rotate(-2deg); }
+.sk-stack-me {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  font-size: 2.4rem;
+  color: #a64a1a;
+  background: #fff7c4;
+  padding: 6px 14px;
+  box-shadow: 2px 3px 0 #1a1a1a;
+}
+.sk-sa { position: absolute; pointer-events: none; }
+.sk-sa-1 { top: 24px; left: 80px; }
+.sk-sa-2 { top: 24px; left: 80px; }
+.sk-sa-3 { top: 120px; left: 80px; }
+.sk-sa-4 { top: 120px; left: 80px; }
+
+.sk-net-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: rotate(-1deg);
+  color: rgba(40, 30, 10, 0.7);
+}
+.sk-net-cap { font-size: 1.1rem; color: rgba(40, 30, 10, 0.65); }
+
+.sk-wip { transform: rotate(3deg); }
+
+/* ---- Contact card (page 5) ------------------------------- */
+.sk-contact-card {
+  position: relative;
+  background: #fefcf3;
+  border: 1px solid rgba(40, 30, 10, 0.18);
+  box-shadow:
+    0 10px 24px rgba(40, 30, 10, 0.18),
+    0 2px 6px rgba(40, 30, 10, 0.1);
+  padding: 32px 36px 40px;
+  max-width: 520px;
+  transform: rotate(-1deg);
+  margin: 18px 0 24px;
+}
+.sk-card-clip {
+  position: absolute;
+  top: -22px;
+  left: 30px;
+  transform: rotate(-12deg);
+}
+.sk-contact-handwriting { margin-bottom: 14px; }
+.sk-contact-row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  margin: 6px 0;
+  font-size: 1.3rem;
+}
+.sk-contact-label {
+  color: rgba(40, 30, 10, 0.6);
+  font-family: 'Patrick Hand', cursive;
+}
+.sk-contact-val { color: #1a1a1a; }
+
+.sk-plane-wrap {
+  position: absolute;
+  right: 26px;
+  bottom: 18px;
+  color: #a64a1a;
+}
+.sk-plane-arrow {
+  position: absolute;
+  top: -10px;
+  left: -90px;
+  color: rgba(40, 30, 10, 0.65);
+}
+
+.sk-closing-script {
+  font-size: 1.8rem;
+  margin: 14px 0 22px;
+  color: #1a1a1a;
+}
+
+.sk-signoff {
+  margin-top: 24px;
+  font-size: 2.6rem;
+  color: #a64a1a;
+  transform: rotate(-3deg);
+  display: inline-block;
+}
+
+/* ---- Exit button (top-left, tape-strip styled) ----------- */
+.sk-exit {
+  position: fixed;
+  top: 28px;
+  left: 28px;
+  z-index: 30;
+  padding: 12px 22px;
+  background: #f3e8a8;
+  border: 1px solid rgba(40, 30, 10, 0.2);
+  transform: rotate(-4deg);
+  cursor: pointer;
+  box-shadow:
+    0 6px 14px rgba(40, 30, 10, 0.2),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.04);
+  font-family: 'Patrick Hand', 'Caveat', cursive;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.sk-exit:hover {
+  transform: rotate(-2deg) translateY(-2px);
+  box-shadow: 0 10px 20px rgba(40, 30, 10, 0.26);
+}
+.sk-exit-text { position: relative; z-index: 1; }
+
+/* ---- Doodle toggle --------------------------------------- */
+.sk-doodle-toggle {
+  position: fixed;
+  bottom: 24px;
+  left: 28px;
+  z-index: 30;
+  padding: 6px 12px;
+  background: #fefcf3;
+  border: 1px dashed rgba(40, 30, 10, 0.45);
+  font-family: 'Patrick Hand', 'Caveat', cursive;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transform: rotate(-2deg);
+  opacity: 0.65;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.sk-doodle-toggle:hover { opacity: 1; transform: rotate(0deg); }
+.sk-doodle-toggle.is-on {
+  background: #fff59a;
+  opacity: 1;
+}
+
+/* ---- Page indicator dots --------------------------------- */
+.sk-dots {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sk-dot {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+.sk-dot-inner {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: rgba(40, 30, 10, 0.3);
+  transition: background 180ms ease, transform 180ms ease;
+}
+.sk-dot:hover .sk-dot-inner {
+  background: rgba(40, 30, 10, 0.55);
+  transform: scale(1.15);
+}
+.sk-dot.is-active .sk-dot-inner {
+  background: #a64a1a;
+  transform: scale(1.4);
+  box-shadow: 0 0 0 3px rgba(166, 74, 26, 0.18);
+}
+
+/* ---- Doodle canvas --------------------------------------- */
+.sk-doodle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+  touch-action: none;
+}
+.sk-doodle-canvas.is-active {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+/* ---- Sketch arrow positioning helper --------------------- */
+.sk-arrow svg, .sk-arrow {
+  pointer-events: none;
+}
+
+/* ---- Doodle base style ----------------------------------- */
+.sk-doodle {
+  color: rgba(40, 30, 10, 0.85);
+  display: block;
+}
+
+/* ---- Reduced motion -------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .sk-scroll { scroll-behavior: auto; }
+  .sk-polaroid,
+  .sk-sticky,
+  .sk-exit {
+    transition: none !important;
+  }
+  .sk-polaroid:hover,
+  .sk-sticky:hover,
+  .sk-exit:hover {
+    transform: rotate(var(--rot, 0deg)) !important;
+  }
+}
+
+/* ---- Mobile / small screens ------------------------------ */
+@media (max-width: 760px) {
+  .sk-handwriting-big { font-size: 2.4rem; }
+  .sk-handwriting { font-size: 1.2rem; }
+  .sk-page {
+    padding: 56px 5vw 56px 11vw;
+  }
+  .sk-page-margin { left: 8vw; }
+  .sk-page-number { top: 12px; right: 14px; }
+
+  .sk-row { gap: 18px; }
+  .sk-row-portrait { flex-direction: column; }
+  .sk-polaroid {
+    flex: 0 0 auto;
+    width: 200px;
+    margin: 0 auto;
+  }
+
+  .sk-flow { font-size: 1.4rem; }
+  .sk-flow-arrow { font-size: 1.6rem; }
+
+  .sk-margin-doodles,
+  .sk-md-1, .sk-md-2, .sk-md-3, .sk-md-4 {
+    display: none;
+  }
+
+  .sk-timeline {
+    padding: 80px 0;
+    min-height: 360px;
+  }
+  .sk-timeline-card { width: 130px; }
+  .sk-tc-year { font-size: 1.6rem; }
+  .sk-tc-title { font-size: 0.95rem; }
+  .sk-tc-detail-sm { font-size: 0.85rem; }
+
+  .sk-gauges { justify-content: center; }
+
+  .sk-stack-diagram { width: 100%; max-width: 280px; margin: 12px auto; }
+
+  .sk-contact-card { padding: 24px 20px 28px; }
+  .sk-contact-row {
+    grid-template-columns: 80px 1fr;
+    font-size: 1.1rem;
+  }
+  .sk-plane-wrap { right: 10px; bottom: 8px; }
+
+  .sk-exit { top: 14px; left: 14px; padding: 8px 14px; font-size: 0.95rem; }
+  .sk-doodle-toggle { bottom: 14px; left: 14px; font-size: 0.85rem; }
+  .sk-dots { right: 8px; gap: 10px; }
+  .sk-dot { width: 18px; height: 18px; }
+  .sk-dot-inner { inset: 5px; }
+
+  .sk-sticky-area-1 { min-height: 200px; }
+  .sk-arrow-1 { left: 10%; }
+  .sk-sticky-1 { position: relative; top: 80px; left: 0; }
+}
+
+/* ---- Print (just in case) -------------------------------- */
+@media print {
+  .sk-exit, .sk-doodle-toggle, .sk-dots, .sk-doodle-canvas { display: none !important; }
+  .sk-page { page-break-after: always; min-height: auto; }
+}

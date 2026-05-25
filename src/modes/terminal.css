@@ -372,3 +372,38 @@
     animation: none !important;
   }
 }
+
+/* Exit affordance — top-right of the status bar so mobile users
+   have a visible way out (besides typing `exit` or pressing ESC). */
+.tm-exit {
+  margin-left: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--tm-green, #7fdb9c);
+  border: 1px solid rgba(127, 219, 156, 0.4);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+.tm-exit:hover,
+.tm-exit:focus-visible {
+  background: rgba(255, 80, 80, 0.18);
+  border-color: rgba(255, 80, 80, 0.7);
+  color: #ff9c9c;
+  outline: none;
+  transform: scale(1.05);
+}
+@media (max-width: 720px) {
+  .tm-exit {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+}

@@ -35,10 +35,12 @@ const DEFAULT_MODE = 'default';
 
 /* ── Mode catalog (single source of truth) ───────────────────────── */
 const MODES = [
-  { id: 'default',  label: 'Blueprint',  short: 'BLUEPRINT',  icon: '📋',           desc: 'Corkboard + CRT terminal landing.' },
-  { id: 'a3',       label: 'A3 Report',  short: 'A3',         icon: '📄',           desc: 'Lean problem-solving doc layout.' },
-  { id: 'terminal', label: 'Terminal',   short: 'CLI',        icon: '▶_',                desc: 'Fully interactive CLI portfolio.' },
-  { id: 'engine',   label: 'Engine',     short: 'ENGINE',     icon: '🛩️',     desc: 'Aerospace turbine cross-section navigation.' },
+  { id: 'default',    label: 'Blueprint',  short: 'BLUEPRINT',  icon: '📋', desc: 'Corkboard + CRT terminal landing.' },
+  { id: 'a3',         label: 'A3 Report',  short: 'A3',         icon: '📄', desc: 'Lean problem-solving doc layout.' },
+  { id: 'terminal',   label: 'Terminal',   short: 'CLI',        icon: '▶_', desc: 'Fully interactive CLI portfolio.' },
+  { id: 'engine',     label: 'Engine',     short: 'ENGINE',     icon: '🛩️', desc: 'Aerospace turbine cross-section navigation.' },
+  { id: 'sketchbook', label: 'Sketchbook', short: 'NOTEBOOK',   icon: '📓', desc: 'Hand-drawn lab notebook pages.' },
+  { id: 'neural',     label: 'Neural',     short: 'NEURAL',     icon: '🧠', desc: '3D-feeling knowledge graph / neural net.' },
 ];
 
 const MODE_IDS = MODES.map((m) => m.id);
@@ -49,6 +51,8 @@ const MODE_IDS = MODES.map((m) => m.id);
 const A3Report      = lazy(() => import('../modes/A3Report.jsx'));
 const Terminal      = lazy(() => import('../modes/Terminal.jsx'));
 const EngineDiagram = lazy(() => import('../modes/EngineDiagram.jsx'));
+const Sketchbook    = lazy(() => import('../modes/Sketchbook.jsx'));
+const Neural        = lazy(() => import('../modes/Neural.jsx'));
 
 /* ── Context ─────────────────────────────────────────────────────── */
 const ModeCtx = createContext(null);
@@ -84,9 +88,11 @@ export function ModeProvider({ children }) {
     if (stored !== DEFAULT_MODE) setModeState(stored);
   }, []);
 
-  // Persist on change
+  // Persist on change + publish to <html data-mode="..."> so HUD CSS can
+  // gate visibility per mode without prop-drilling.
   useEffect(() => {
     writeStoredMode(mode);
+    try { document.documentElement.dataset.mode = mode } catch (e) {}
   }, [mode]);
 
   const setMode = useCallback((nextId) => {
@@ -242,9 +248,11 @@ export function ModeHost() {
   let Comp = null;
   switch (mode) {
     case 'a3':       Comp = A3Report;      break;
-    case 'terminal': Comp = Terminal;      break;
-    case 'engine':   Comp = EngineDiagram; break;
-    default:         Comp = null;
+    case 'terminal':   Comp = Terminal;      break;
+    case 'engine':     Comp = EngineDiagram; break;
+    case 'sketchbook': Comp = Sketchbook;    break;
+    case 'neural':     Comp = Neural;        break;
+    default:           Comp = null;
   }
   if (!Comp) return null;
 

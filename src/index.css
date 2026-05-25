@@ -1235,3 +1235,15 @@ body {
 }
 
 /* End of stylesheet — keep this comment to force Vite HMR to pick up appended rules. */
+
+/* In an alt-mode (A3 / Terminal / Engine) the alt-mode component takes
+   over the viewport with its own header + exit affordance. Hide the
+   shared HUD cluster so it doesn't overlap. The mode-switcher itself
+   also hides — switch back by using the alt-mode's own exit button. */
+:root[data-mode]:not([data-mode="default"]) .ach-hud,
+:root[data-mode]:not([data-mode="default"]) .au-hud,
+:root[data-mode]:not([data-mode="default"]) .zz-theme-switcher,
+:root[data-mode]:not([data-mode="default"]) .mo-switcher,
+:root[data-mode]:not([data-mode="default"]) .dm-hud {
+  display: none !important;
+}

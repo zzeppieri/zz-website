@@ -1138,6 +1138,13 @@ export default function Terminal({ onExit = () => {} }) {
           <span>load {cpuLoad}%</span>
           <span>mem {memUsed}%</span>
           <span>up {uptimeStr}</span>
+          <button
+            type="button"
+            className="tm-exit"
+            aria-label="Exit terminal mode"
+            title="Exit (or type `exit` / ESC)"
+            onClick={() => { try { onExit && onExit() } catch (e) {} }}
+          >×</button>
         </div>
       </div>
 
