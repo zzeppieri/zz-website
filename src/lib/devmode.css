@@ -10,11 +10,11 @@
   --dm-navy-2: #1f2b3d;
   --dm-border: #2a3a52;
   --dm-green: #7fdb9c;
-  --dm-green-dim: #4a8c61;
+  --dm-green-dim: #6aaa7a;     /* bumped from #4a8c61 for legible secondary text/borders */
   --dm-amber: #ffb84a;
   --dm-red: #ff5a4a;
   --dm-text: #e0e8f0;
-  --dm-text-dim: #8899aa;
+  --dm-text-dim: #a8b8cc;      /* matched to site --text-muted */
   --dm-font-term: 'VT323', 'IBM Plex Mono', ui-monospace, monospace;
   --dm-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
@@ -225,7 +225,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -261,9 +262,10 @@
 }
 .dm-hud-meta {
   margin: 8px 0 10px;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--dm-text-dim);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 .dm-hud-actions {
   display: flex;

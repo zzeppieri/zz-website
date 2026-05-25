@@ -387,6 +387,10 @@ export default function PrinterSim() {
       setLayerT(1)
       setElapsedMs(elapsedRef.current)
       appendGcode(finishGcode())
+      // Fire achievement event for the AchievementsBridge
+      try {
+        window.dispatchEvent(new CustomEvent('achievement:printer-completed'))
+      } catch (e) { /* noop */ }
       return
     }
 

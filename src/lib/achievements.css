@@ -12,7 +12,7 @@
   --ach-amber:     #f5c265;
   --ach-cyan:      #4ec9d4;
   --ach-text:      #e6edf3;
-  --ach-muted:     rgba(230, 237, 243, 0.55);
+  --ach-muted:     rgba(230, 237, 243, 0.82);   /* bumped from 0.55 for >=4.5:1 on navy */
   --ach-mono:      'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --ach-display:   'VT323', 'IBM Plex Mono', ui-monospace, monospace;
 }
@@ -99,7 +99,8 @@
 }
 .ach-hud-panel-title {
   font-family: var(--ach-mono);
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.18em;
   color: var(--ach-cyan);
   text-transform: lowercase;
@@ -138,7 +139,7 @@
   padding: 8px 12px;
   border-bottom: 1px solid rgba(127, 219, 156, 0.06);
   font-size: 11px;
-  opacity: 0.55;
+  opacity: 0.78;             /* bumped from 0.55; locked items now legible, still visually dimmed vs. unlocked */
   transition: background 0.15s ease;
 }
 .ach-hud-item:last-child { border-bottom: none; }
@@ -170,10 +171,11 @@
 .ach-hud-item--got .ach-hud-item-name { color: var(--ach-green); }
 .ach-hud-item-desc {
   font-family: var(--ach-mono);
-  font-size: 9.5px;
+  font-size: 10.5px;
+  font-weight: 500;
   color: var(--ach-muted);
   letter-spacing: 0.04em;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 .ach-hud-item-mark {
   font-family: var(--ach-mono);
@@ -187,7 +189,8 @@
   padding: 8px 12px;
   border-top: 1px solid var(--ach-border-2);
   font-family: var(--ach-mono);
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 500;
   letter-spacing: 0.14em;
   color: var(--ach-muted);
   text-align: right;
@@ -251,7 +254,8 @@
 }
 .ach-toast-label {
   font-family: var(--ach-mono);
-  font-size: 8.5px;
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.22em;
   color: var(--ach-amber);
   text-transform: uppercase;
@@ -265,10 +269,11 @@
 }
 .ach-toast-desc {
   font-family: var(--ach-mono);
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--ach-muted);
   letter-spacing: 0.03em;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 /* ─── Mobile ────────────────────────────────────────────────────── */
@@ -276,9 +281,9 @@
   .ach-hud { top: 8px; right: 8px; }
   .ach-hud-badge {
     padding: 5px 8px;
-    font-size: 10px;
+    font-size: 11px;
   }
-  .ach-hud-badge-icon { font-size: 11px; }
+  .ach-hud-badge-icon { font-size: 12px; }
   .ach-hud-panel {
     width: calc(100vw - 16px);
     right: -2px;
@@ -296,7 +301,7 @@
   }
   .ach-toast-icon { font-size: 20px; }
   .ach-toast-name { font-size: 15px; }
-  .ach-toast-desc { font-size: 9.5px; }
+  .ach-toast-desc { font-size: 10.5px; }
 }
 
 /* ─── Reduced motion ────────────────────────────────────────────── */

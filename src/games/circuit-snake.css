@@ -24,6 +24,27 @@
   -webkit-user-select: none;
   position: relative;
 }
+/* When the leaderboard sidebar is shown, widen the root so the board stays usable */
+.cs-root.cs-wide {
+  max-width: 920px;
+}
+
+/* Layout: main column + optional sidebar */
+.cs-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+}
+.cs-root.cs-narrow .cs-layout {
+  flex-direction: column;
+  gap: 10px;
+}
+.cs-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
 /* HUD */
 .cs-hud {
@@ -76,8 +97,9 @@
   position: absolute;
   top: 2px;
   right: 14px;
-  font-size: 10px;
-  color: #555;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9aa3ad;          /* bumped from #555 — was unreadable on bezel */
   letter-spacing: 0.2em;
 }
 
@@ -230,7 +252,7 @@
 }
 .cs-overlay-hint {
   font-size: 14px;
-  color: var(--cs-green-dim);
+  color: rgba(127, 219, 156, 0.78);   /* bumped from 0.35 (--cs-green-dim) for body text legibility */
   letter-spacing: 0.16em;
 }
 
@@ -284,12 +306,12 @@
   justify-content: space-between;
   font-size: 13px;
   letter-spacing: 0.1em;
-  color: rgba(127, 219, 156, 0.55);
+  color: rgba(127, 219, 156, 0.85);   /* bumped from 0.55 — keybind hints need to be readable */
 }
 .cs-footer .cs-key {
   display: inline-block;
   padding: 0 5px;
-  border: 1px solid rgba(127, 219, 156, 0.3);
+  border: 1px solid rgba(127, 219, 156, 0.55);
   border-radius: 2px;
   margin: 0 2px;
   color: var(--cs-green);
@@ -301,7 +323,7 @@
   .cs-hud-label { font-size: 12px; }
   .cs-overlay-title { font-size: 24px; }
   .cs-overlay-sub { font-size: 15px; }
-  .cs-footer { font-size: 11px; }
+  .cs-footer { font-size: 12px; }
   .cs-bezel { padding: 10px; }
 }
 
@@ -311,3 +333,197 @@
   .cs-food { animation: none; }
   .cs-overlay-title.cs-halt { animation: none; }
 }
+
+/* ─── Leaderboard ─── */
+.cs-lb-panel {
+  flex: 0 0 240px;
+  align-self: stretch;
+  background: linear-gradient(180deg, var(--cs-bg), var(--cs-bg-2));
+  border: 1px solid rgba(78, 201, 212, 0.35);
+  border-radius: 8px;
+  padding: 12px 12px 14px;
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(127, 219, 156, 0.06);
+  color: var(--cs-green);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: 100%;
+}
+.cs-lb-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed rgba(127, 219, 156, 0.3);
+}
+.cs-lb-title {
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  color: var(--cs-green-bright);
+  text-shadow: 0 0 6px rgba(127, 219, 156, 0.55);
+}
+.cs-lb-sub {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--cs-cyan);
+  opacity: 0.85;
+}
+.cs-lb-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+.cs-lb-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 4px;
+  font-size: 16px;
+  color: var(--cs-green);
+  border-radius: 2px;
+}
+.cs-lb-row:nth-child(odd) {
+  background: rgba(127, 219, 156, 0.05);
+}
+.cs-lb-row:first-child {
+  color: var(--cs-green-bright);
+  text-shadow: 0 0 5px rgba(127, 219, 156, 0.45);
+}
+.cs-lb-rank {
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-cyan);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+}
+.cs-lb-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.cs-lb-score {
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-green-bright);
+  letter-spacing: 0.06em;
+}
+.cs-lb-empty {
+  padding: 12px 4px;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--cs-green-dim);
+  text-align: center;
+}
+
+/* ─── Mobile collapsible leaderboard ─── */
+.cs-lb-collapsible {
+  margin-top: 10px;
+  border: 1px solid rgba(78, 201, 212, 0.35);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--cs-bg), var(--cs-bg-2));
+  overflow: hidden;
+}
+.cs-lb-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  color: var(--cs-green-bright);
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 5px rgba(127, 219, 156, 0.45);
+  cursor: pointer;
+}
+.cs-lb-toggle:hover,
+.cs-lb-toggle:focus-visible {
+  background: rgba(127, 219, 156, 0.08);
+  outline: none;
+}
+.cs-lb-caret {
+  color: var(--cs-cyan);
+  font-size: 14px;
+}
+.cs-lb-collapsible-body {
+  padding: 6px 10px 10px;
+  border-top: 1px dashed rgba(127, 219, 156, 0.3);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* ─── Name-input overlay ─── */
+.cs-overlay-name {
+  gap: 10px;
+}
+.cs-name-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(280px, 86%);
+}
+.cs-name-label {
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--cs-cyan);
+  text-shadow: 0 0 4px rgba(78, 201, 212, 0.35);
+}
+.cs-name-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 22px;
+  text-align: center;
+  letter-spacing: 0.08em;
+  padding: 6px 10px;
+  background: rgba(8, 14, 22, 0.85);
+  color: var(--cs-green-bright);
+  border: 1px solid var(--cs-green-dim);
+  border-radius: 3px;
+  text-shadow: 0 0 5px rgba(127, 219, 156, 0.45);
+  caret-color: var(--cs-green-bright);
+  outline: none;
+}
+.cs-name-input:focus {
+  border-color: var(--cs-green);
+  box-shadow: 0 0 8px rgba(127, 219, 156, 0.35) inset;
+}
+.cs-name-actions {
+  display: flex;
+  gap: 10px;
+}
+.cs-btn-dim {
+  color: var(--cs-cyan);
+  border-color: rgba(78, 201, 212, 0.4);
+  text-shadow: 0 0 4px rgba(78, 201, 212, 0.35);
+}
+.cs-btn-dim:hover,
+.cs-btn-dim:focus-visible {
+  background: rgba(78, 201, 212, 0.1);
+  border-color: var(--cs-cyan);
+  color: var(--cs-green-bright);
+}
+
+/* ─── Game-over leaderboard list (inside overlay) ─── */
+.cs-overlay-list { gap: 10px; }
+.cs-overlay-lb {
+  width: min(280px, 90%);
+  max-height: 50%;
+  overflow-y: auto;
+  background: rgba(8, 14, 22, 0.7);
+  border: 1px solid rgba(127, 219, 156, 0.25);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.cs-overlay-lb .cs-lb-list { gap: 1px; }
+.cs-overlay-lb .cs-lb-row { font-size: 14px; padding: 2px 2px; }
+.cs-overlay-lb .cs-lb-rank { font-size: 11px; }

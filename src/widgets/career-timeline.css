@@ -1,6 +1,12 @@
 /* ============================================================
    Career Timeline Widget — scoped under .tl-*
    Aesthetic: dark navy + CRT green/amber + VT323 + IBM Plex Mono
+
+   Layout: flex column (header / viewport / controls) so the
+   widget fills whatever container height the integrator gives
+   it without clipping. Mobile vs desktop is gated by JS via
+   .is-mobile / .is-desktop classes on .tl-root (NOT @media,
+   because the container can be narrower than the viewport).
    ============================================================ */
 
 .tl-root {
@@ -10,9 +16,9 @@
   --tl-bg-deep:   #0c1320;
   --tl-rail:      #2a3a52;
   --tl-rail-lit:  #4ec9d4;
-  --tl-text:      #e0e8f0;
-  --tl-muted:     #8899aa;
-  --tl-dim:       #5a6a7a;
+  --tl-text:      #e6eef6;
+  --tl-muted:     #b8c4d3;   /* bumped from #aab7c5 for >=4.5:1 on navy */
+  --tl-dim:       #8a9aae;   /* bumped from #6b7d8f; was ~3.4:1 */
   --tl-cyan:      #4ec9d4;
   --tl-amber:     #ffb84a;
   --tl-gold:      #f5c542;
@@ -22,10 +28,15 @@
   --tl-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --tl-font-term: 'VT323', monospace;
 
+  /* sizing — fill whatever the integrator gives us. NO min-height
+     forcing taller than parent (caused clipping when parent was 520px). */
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 520px;
+  /* flex column: header / viewport / controls stack predictably */
+  display: flex;
+  flex-direction: column;
+
   background:
     repeating-linear-gradient(0deg,  var(--tl-grid) 0px, var(--tl-grid) 1px, transparent 1px, transparent 32px),
     repeating-linear-gradient(90deg, var(--tl-grid) 0px, var(--tl-grid) 1px, transparent 1px, transparent 32px),
@@ -33,7 +44,7 @@
     linear-gradient(180deg, var(--tl-bg-soft), var(--tl-bg) 60%, var(--tl-bg-deep));
   color: var(--tl-text);
   font-family: var(--tl-font-mono);
-  overflow: hidden;
+  overflow: hidden;       /* clip background corners, but children manage their own scroll */
   border: 1px solid var(--tl-rail);
   border-radius: 6px;
   box-shadow:
@@ -56,36 +67,36 @@
 .tl-root::before { top: 8px;    left: 8px;    border-right: none; border-bottom: none; }
 .tl-root::after  { bottom: 8px; right: 8px;   border-left: none;  border-top: none;    }
 
-/* header strip */
+/* header strip — fixed height flex child */
 .tl-header {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  padding: 14px 22px 8px;
+  flex: 0 0 auto;
+  padding: 12px 22px 8px;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   font-family: var(--tl-font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--tl-muted);
   z-index: 4;
   pointer-events: none;
+  position: relative;
 }
 .tl-header-title { color: var(--tl-cyan); }
 .tl-header-meta  { color: var(--tl-dim); }
 
-/* scroll viewport */
+/* scroll viewport — flex: 1, fills available height between header & controls */
 .tl-viewport {
-  position: absolute;
-  inset: 44px 0 36px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 0;          /* CRITICAL: lets flex child actually shrink */
   scroll-behavior: smooth;
-  scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
+  outline: none;
 }
-.tl-viewport::-webkit-scrollbar { height: 6px; }
+.tl-viewport::-webkit-scrollbar { height: 6px; width: 6px; }
 .tl-viewport::-webkit-scrollbar-track { background: rgba(78,201,212,0.04); }
 .tl-viewport::-webkit-scrollbar-thumb {
   background: var(--tl-rail);
@@ -93,18 +104,24 @@
 }
 .tl-viewport::-webkit-scrollbar-thumb:hover { background: var(--tl-cyan); }
 
-/* the long rail/tape */
-.tl-track {
-  position: relative;
-  height: 100%;
-  /* width set inline by JS based on stop count */
-  padding: 0 80px;
-  display: flex;
-  align-items: center;
+/* ============================================================
+   DESKTOP layout — horizontal rail, internal x-scroll
+   ============================================================ */
+.tl-root.is-desktop .tl-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
 }
 
-/* horizontal rail line */
-.tl-rail {
+.tl-root.is-desktop .tl-track {
+  position: relative;
+  height: 100%;
+  min-height: 360px;   /* enough headroom for up/down cards */
+  /* width set inline by JS based on stop count */
+  padding: 0 80px;
+}
+
+.tl-root.is-desktop .tl-rail {
   position: absolute;
   left: 80px;
   right: 80px;
@@ -119,8 +136,7 @@
   transform: translateY(-50%);
   z-index: 1;
 }
-.tl-rail::before {
-  /* tick pattern under rail */
+.tl-root.is-desktop .tl-rail::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -136,20 +152,21 @@
   height: 6px;
 }
 
-/* year axis labels — anchored along rail */
-.tl-axis-tick {
+/* year axis labels — anchored along rail (desktop only) */
+.tl-root.is-desktop .tl-axis-tick {
   position: absolute;
   top: 50%;
   transform: translate(-50%, 14px);
   font-family: var(--tl-font-term);
-  font-size: 1.4rem;
-  color: var(--tl-dim);
+  font-size: 1.5rem;
+  color: var(--tl-muted);        /* was --tl-dim; bumped for readability */
   letter-spacing: 0.08em;
   z-index: 1;
   pointer-events: none;
   white-space: nowrap;
+  text-shadow: 0 0 8px rgba(0,0,0,0.6);
 }
-.tl-axis-tick::before {
+.tl-root.is-desktop .tl-axis-tick::before {
   content: '';
   position: absolute;
   top: -16px;
@@ -161,7 +178,7 @@
 }
 
 /* a stop on the timeline */
-.tl-stop {
+.tl-root.is-desktop .tl-stop {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -170,23 +187,29 @@
   z-index: 2;
   cursor: pointer;
   outline: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
-.tl-stop:focus-visible .tl-node {
+.tl-root.is-desktop .tl-stop:focus-visible .tl-node {
   box-shadow:
     0 0 0 2px var(--tl-bg),
     0 0 0 4px var(--tl-cyan);
 }
 
-/* node — the dot on the rail */
+/* node — the dot on the rail (shared desktop+mobile, geometry overridden) */
 .tl-node {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: var(--tl-bg);
   border: 2px solid var(--tl-cyan);
-  margin: 0 auto;
   position: relative;
   z-index: 3;
+  display: block;
   transition:
     transform 220ms cubic-bezier(.2,.8,.2,1),
     box-shadow 220ms ease,
@@ -195,6 +218,8 @@
     0 0 0 3px var(--tl-bg),
     0 0 12px rgba(78,201,212,0.4);
 }
+.tl-root.is-desktop .tl-node { margin: 0 auto; }
+
 .tl-node::after {
   content: '';
   position: absolute;
@@ -210,11 +235,11 @@
 .tl-stop[data-type="project"]  .tl-node { border-color: var(--tl-cyan);  }
 .tl-stop[data-type="training"] .tl-node { border-color: var(--tl-amber); box-shadow: 0 0 0 3px var(--tl-bg), 0 0 14px rgba(255,184,74,0.5); }
 .tl-stop[data-type="training"] .tl-node::after { background: var(--tl-amber); }
-.tl-stop[data-type="milestone"].tl-node { /* default cyan */ }
-.tl-stop[data-type="future"]   .tl-node { border-style: dashed; opacity: 0.85; }
+.tl-stop[data-type="milestone"] .tl-node { /* default cyan */ }
+.tl-stop[data-type="future"]   .tl-node { border-style: dashed; opacity: 0.9; }
 
-/* connector — vertical line from node to label box */
-.tl-connector {
+/* connector — vertical line from node to label card (desktop) */
+.tl-root.is-desktop .tl-connector {
   position: absolute;
   left: 50%;
   width: 1px;
@@ -223,20 +248,17 @@
   z-index: 1;
   transition: background 220ms ease;
 }
-.tl-stop[data-side="up"]   .tl-connector { bottom: 50%; height: 70px; }
-.tl-stop[data-side="down"] .tl-connector { top: 50%;    height: 70px; }
+.tl-root.is-desktop .tl-stop[data-side="up"]   .tl-connector { bottom: 50%; height: 70px; }
+.tl-root.is-desktop .tl-stop[data-side="down"] .tl-connector { top: 50%;    height: 70px; }
 
-/* label/blurb card */
+/* label/blurb card — base styles shared, position overridden per layout */
 .tl-card {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  padding: 8px 10px;
-  background: rgba(12, 19, 32, 0.85);
+  background: rgba(12, 19, 32, 0.92);
   border: 1px solid var(--tl-rail);
   border-radius: 3px;
+  padding: 8px 10px;
   text-align: left;
+  display: block;
   transition:
     transform 240ms cubic-bezier(.2,.8,.2,1),
     border-color 240ms ease,
@@ -244,13 +266,20 @@
     background 240ms ease;
   backdrop-filter: blur(2px);
 }
-.tl-stop[data-side="up"]   .tl-card { bottom: calc(50% + 70px); transform: translate(-50%, 0); }
-.tl-stop[data-side="down"] .tl-card { top:    calc(50% + 70px); transform: translate(-50%, 0); }
+
+.tl-root.is-desktop .tl-card {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+}
+.tl-root.is-desktop .tl-stop[data-side="up"]   .tl-card { bottom: calc(50% + 70px); transform: translate(-50%, 0); }
+.tl-root.is-desktop .tl-stop[data-side="down"] .tl-card { top:    calc(50% + 70px); transform: translate(-50%, 0); }
 
 .tl-card-when {
   font-family: var(--tl-font-term);
-  font-size: 0.95rem;
-  letter-spacing: 0.1em;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
   color: var(--tl-cyan);
   margin-bottom: 2px;
   display: flex;
@@ -258,7 +287,7 @@
   gap: 6px;
 }
 .tl-card-icon {
-  font-size: 0.95rem;
+  font-size: 1rem;
   filter: drop-shadow(0 0 4px rgba(78,201,212,0.5));
 }
 .tl-card-title {
@@ -268,12 +297,14 @@
   color: var(--tl-text);
   line-height: 1.25;
   margin-bottom: 4px;
+  display: block;
 }
 .tl-card-blurb {
   font-family: var(--tl-font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: var(--tl-muted);
-  line-height: 1.4;
+  line-height: 1.45;
+  display: block;
 }
 
 /* type-specific card accent line */
@@ -282,8 +313,8 @@
 .tl-stop[data-type="project"]  .tl-card { border-left: 2px solid var(--tl-cyan);  }
 .tl-stop[data-type="training"] .tl-card { border-left: 2px solid var(--tl-amber); }
 .tl-stop[data-type="training"] .tl-card-when { color: var(--tl-amber); }
-.tl-stop[data-type="future"]   .tl-card { border-left: 2px dashed var(--tl-dim); opacity: 0.85; }
-.tl-stop[data-type="future"]   .tl-card-when { color: var(--tl-dim); }
+.tl-stop[data-type="future"]   .tl-card { border-left: 2px dashed var(--tl-dim); opacity: 0.92; }
+.tl-stop[data-type="future"]   .tl-card-when { color: var(--tl-muted); }
 
 /* hover state */
 .tl-stop:hover .tl-node {
@@ -292,15 +323,15 @@
 }
 .tl-stop:hover .tl-card {
   border-color: var(--tl-cyan);
-  background: rgba(20, 30, 48, 0.95);
+  background: rgba(20, 30, 48, 0.96);
   box-shadow: 0 4px 18px rgba(0,0,0,0.5);
 }
 .tl-stop:hover .tl-connector { background: var(--tl-cyan); }
 .tl-stop:hover .tl-card-blurb { color: var(--tl-text); }
 
-/* active/expanded stop */
+/* active stop */
 .tl-stop.is-active .tl-node {
-  transform: scale(1.25);
+  transform: scale(1.28);
   box-shadow: 0 0 0 3px var(--tl-bg), 0 0 22px rgba(78,201,212,0.9);
 }
 .tl-stop.is-active .tl-card {
@@ -318,43 +349,159 @@
   border-color: var(--tl-amber);
 }
 
-/* expanded details */
-.tl-details {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 280ms cubic-bezier(.2,.8,.2,1), margin-top 280ms ease;
-  margin-top: 0;
+/* sr-only utility for ordinal labels */
+.tl-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
 }
-.tl-stop.is-active .tl-details {
-  grid-template-rows: 1fr;
-  margin-top: 8px;
-}
-.tl-details-inner {
+
+/* ============================================================
+   DETAIL PANEL — modal-style overlay inside the widget.
+   Sits above viewport, scrolls internally, never clips.
+   ============================================================ */
+.tl-detail-panel {
+  position: absolute;
+  z-index: 10;
+  top: 48px;
+  left: 22px;
+  right: 22px;
+  bottom: 44px;
+  max-width: 520px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, rgba(20,32,50,0.98), rgba(12,19,32,0.98));
+  border: 1px solid var(--tl-cyan);
+  border-left-width: 3px;
+  border-radius: 4px;
+  padding: 14px 18px 16px;
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(78,201,212,0.2),
+    inset 0 0 30px rgba(78,201,212,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   overflow: hidden;
-  border-top: 1px dashed var(--tl-rail);
-  padding-top: 6px;
-  font-size: 0.66rem;
+  animation: tl-panel-in 180ms cubic-bezier(.2,.8,.2,1);
+}
+@keyframes tl-panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+.tl-detail-panel[data-type="promo"]    { border-color: var(--tl-gold);  }
+.tl-detail-panel[data-type="training"] { border-color: var(--tl-amber); }
+.tl-detail-panel[data-type="future"]   { border-color: var(--tl-muted); border-style: dashed; border-left-style: solid; }
+
+.tl-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tl-detail-when {
+  font-family: var(--tl-font-term);
+  font-size: 1.15rem;
+  color: var(--tl-cyan);
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tl-detail-icon {
+  filter: drop-shadow(0 0 5px rgba(78,201,212,0.6));
+}
+
+/* type pills — proper background + high-contrast text */
+.tl-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--tl-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  line-height: 1.4;
+}
+.tl-pill-promo     { background: var(--tl-gold);  color: #1a1100; }
+.tl-pill-project   { background: var(--tl-cyan);  color: #001417; }
+.tl-pill-training  { background: var(--tl-amber); color: #1a0e00; }
+.tl-pill-milestone { background: #b8c4d3;         color: #0c1320; }
+.tl-pill-future    { background: transparent;     color: var(--tl-muted); border: 1px dashed var(--tl-muted); }
+
+.tl-detail-close {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--tl-rail);
+  color: var(--tl-muted);
+  font-family: var(--tl-font-mono);
+  font-size: 0.8rem;
+  width: 26px; height: 26px;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms ease;
+}
+.tl-detail-close:hover,
+.tl-detail-close:focus-visible {
+  border-color: var(--tl-cyan);
+  color: var(--tl-cyan);
+  background: rgba(78,201,212,0.1);
+  outline: none;
+}
+
+.tl-detail-title {
+  font-family: var(--tl-font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--tl-text);
+  margin: 0;
+  line-height: 1.3;
+}
+.tl-detail-blurb {
+  font-family: var(--tl-font-mono);
+  font-size: 0.78rem;
+  color: var(--tl-muted);
+  margin: 0;
   line-height: 1.5;
 }
-.tl-details-list { list-style: none; padding: 0; margin: 0; }
-.tl-details-list li {
-  position: relative;
-  padding-left: 12px;
-  margin-bottom: 4px;
+.tl-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  font-family: var(--tl-font-mono);
+  font-size: 0.78rem;
+  color: var(--tl-text);
+  line-height: 1.55;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
-.tl-details-list li::before {
+.tl-detail-list::-webkit-scrollbar { width: 5px; }
+.tl-detail-list::-webkit-scrollbar-thumb { background: var(--tl-rail); border-radius: 2px; }
+.tl-detail-list li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 6px;
+}
+.tl-detail-list li::before {
   content: '>';
   position: absolute;
   left: 0;
   color: var(--tl-cyan);
   font-family: var(--tl-font-term);
+  font-size: 0.9rem;
 }
 
-/* nav controls */
+/* ============================================================
+   CONTROLS strip
+   ============================================================ */
 .tl-controls {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
+  flex: 0 0 auto;
   height: 36px;
   display: flex;
   align-items: center;
@@ -362,8 +509,9 @@
   gap: 14px;
   padding: 0 22px;
   z-index: 4;
-  border-top: 1px solid rgba(78,201,212,0.1);
+  border-top: 1px solid rgba(78,201,212,0.12);
   background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25));
+  position: relative;
 }
 .tl-btn {
   background: transparent;
@@ -377,6 +525,7 @@
   border-radius: 2px;
   transition: all 180ms ease;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 .tl-btn:hover,
 .tl-btn:focus-visible {
@@ -405,8 +554,8 @@
 }
 .tl-counter {
   font-family: var(--tl-font-term);
-  font-size: 1rem;
-  color: var(--tl-dim);
+  font-size: 1.05rem;
+  color: var(--tl-muted);
   min-width: 64px;
   text-align: center;
 }
@@ -416,137 +565,121 @@
 .tl-viewport.is-grabbing { cursor: grabbing; }
 .tl-viewport.is-grabbing .tl-stop { cursor: grabbing; }
 
-/* ===========================================================
-   MOBILE — vertical layout under 700px
-   =========================================================== */
-@media (max-width: 700px) {
-  .tl-root { min-height: 560px; }
-
-  .tl-viewport {
-    inset: 44px 0 36px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    scroll-snap-type: y proximity;
-  }
-  .tl-track {
-    width: 100% !important;
-    height: auto;
-    min-height: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 30px 0 30px;
-  }
-
-  /* vertical rail */
-  .tl-rail {
-    left: 50%;
-    right: auto;
-    top: 30px;
-    bottom: 30px;
-    width: 2px;
-    height: auto;
-    background:
-      linear-gradient(180deg,
-        transparent 0%,
-        var(--tl-rail) 4%,
-        var(--tl-rail) 96%,
-        transparent 100%);
-    transform: translateX(-50%);
-  }
-  .tl-rail::before {
-    background-image: repeating-linear-gradient(
-      0deg,
-      var(--tl-rail) 0px,
-      var(--tl-rail) 1px,
-      transparent 1px,
-      transparent 40px
-    );
-    top: 0;
-    left: 6px;
-    width: 6px;
-    height: 100%;
-  }
-
-  /* axis ticks vertical */
-  .tl-axis-tick {
-    top: auto;
-    left: 50%;
-    transform: translate(20px, -50%);
-  }
-  .tl-axis-tick::before {
-    top: 50%;
-    left: -16px;
-    width: 8px;
-    height: 1px;
-    transform: translateY(-50%);
-  }
-
-  /* stops vertical */
-  .tl-stop {
-    position: relative;
-    top: auto;
-    left: 50%;
-    transform: translate(-50%, 0);
-    margin-bottom: 24px;
-    width: 100%;
-    max-width: 360px;
-    scroll-snap-align: start;
-  }
-  .tl-node {
-    position: absolute;
-    left: 50%;
-    top: 8px;
-    transform: translateX(-50%);
-  }
-
-  .tl-connector {
-    top: 14px;
-    bottom: auto;
-    left: 50%;
-    width: 30px;
-    height: 1px;
-    background: var(--tl-rail);
-  }
-  .tl-stop[data-side="up"]   .tl-connector,
-  .tl-stop[data-side="left"] .tl-connector {
-    transform: translateX(-100%);
-    left: calc(50% - 8px);
-  }
-  .tl-stop[data-side="down"]  .tl-connector,
-  .tl-stop[data-side="right"] .tl-connector {
-    transform: none;
-    left: calc(50% + 8px);
-  }
-
-  .tl-card {
-    position: relative;
-    left: auto;
-    top: auto;
-    bottom: auto;
-    transform: none !important;
-    width: 44%;
-    margin-top: 0;
-  }
-  .tl-stop[data-side="up"]   .tl-card,
-  .tl-stop[data-side="left"] .tl-card {
-    margin-left: 0;
-    margin-right: auto;
-  }
-  .tl-stop[data-side="down"]  .tl-card,
-  .tl-stop[data-side="right"] .tl-card {
-    margin-left: auto;
-    margin-right: 0;
-  }
-
-  .tl-controls { padding: 0 12px; gap: 8px; }
-  .tl-btn { padding: 3px 8px; font-size: 0.65rem; }
-  .tl-progress { max-width: none; }
+/* ============================================================
+   MOBILE layout — vertical stack, internal y-scroll.
+   Gated by JS class (.is-mobile), NOT @media — because the
+   container can be narrow while viewport is wide.
+   ============================================================ */
+.tl-root.is-mobile .tl-viewport {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  padding: 16px 14px 24px;
 }
+
+.tl-root.is-mobile .tl-track {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  padding: 8px 0 8px 56px;     /* leave room for the rail on the left */
+}
+
+/* vertical rail down the left edge */
+.tl-root.is-mobile .tl-rail {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 24px;
+  width: 2px;
+  height: auto;
+  background: linear-gradient(180deg,
+      transparent 0%,
+      var(--tl-rail) 4%,
+      var(--tl-rail) 96%,
+      transparent 100%);
+}
+.tl-root.is-mobile .tl-rail::before { display: none; }
+
+/* mobile axis ticks rendered inline in track (we skip them) */
+.tl-root.is-mobile .tl-axis-tick { display: none; }
+
+/* stops are normal block-level cards, full-width */
+.tl-root.is-mobile .tl-stop {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  scroll-snap-align: start;
+  outline: none;
+  font: inherit;
+  color: inherit;
+}
+
+/* node sits on the rail (left edge) */
+.tl-root.is-mobile .tl-node {
+  position: absolute;
+  left: -38px;            /* relative to the stop's padded-left */
+  top: 14px;
+  margin: 0;
+}
+
+/* connector — horizontal nub from rail into the card */
+.tl-root.is-mobile .tl-connector {
+  position: absolute;
+  left: -22px;
+  top: 21px;
+  width: 18px;
+  height: 1px;
+  background: var(--tl-rail);
+  transition: background 220ms ease;
+}
+.tl-root.is-mobile .tl-stop:hover .tl-connector,
+.tl-root.is-mobile .tl-stop.is-active .tl-connector { background: var(--tl-cyan); }
+
+/* card on mobile — full available width */
+.tl-root.is-mobile .tl-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  transform: none;
+  padding: 10px 12px;
+}
+.tl-root.is-mobile .tl-card-when   { font-size: 1.05rem; }
+.tl-root.is-mobile .tl-card-title  { font-size: 0.88rem; margin-bottom: 4px; }
+.tl-root.is-mobile .tl-card-blurb  { font-size: 0.74rem; }
+
+/* mobile detail panel — slightly tighter margins */
+.tl-root.is-mobile .tl-detail-panel {
+  top: 44px;
+  left: 10px;
+  right: 10px;
+  bottom: 42px;
+  padding: 12px 14px 14px;
+}
+.tl-root.is-mobile .tl-detail-title { font-size: 0.95rem; }
+.tl-root.is-mobile .tl-detail-blurb { font-size: 0.74rem; }
+.tl-root.is-mobile .tl-detail-list  { font-size: 0.74rem; }
+
+/* tighter controls on mobile */
+.tl-root.is-mobile .tl-controls { padding: 0 10px; gap: 8px; }
+.tl-root.is-mobile .tl-btn      { padding: 3px 8px; font-size: 0.62rem; letter-spacing: 0.1em; }
+.tl-root.is-mobile .tl-progress { max-width: none; }
+.tl-root.is-mobile .tl-counter  { min-width: 48px; font-size: 0.95rem; }
 
 /* respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .tl-viewport { scroll-behavior: auto; }
-  .tl-node, .tl-card, .tl-connector, .tl-details, .tl-progress-fill {
+  .tl-node, .tl-card, .tl-connector, .tl-detail-panel, .tl-progress-fill {
     transition: none !important;
+    animation: none !important;
   }
 }

@@ -10,12 +10,13 @@
   --surface-orange: #FFE0B2;
   --surface-purple: #E1BEE7;
   --border: #2a3a52;
-  --text: #e0e8f0;
-  --text-muted: #8899aa;
-  --accent: #ff6b4a;
+  --text: #e6eef5;
+  --text-muted: #a8b8cc;
+  --accent: #ff8467;
   --pin: #D44638;
-  --white: #f0f4f8;
+  --white: #f4f8fc;
   --cyan: #4ec9d4;
+  --cyan-text: #7fdeea;
   --grid: rgba(78, 201, 212, 0.07);
   --grid-strong: rgba(78, 201, 212, 0.12);
   --term-green: #33ff33;
@@ -228,13 +229,13 @@ body {
 }
 .sticky-label {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.66rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #2C1810;
+  color: #1a0d05;
   text-align: center;
   line-height: 1.2;
-  font-weight: 500;
+  font-weight: 600;
 }
 .sticky-bubble:hover .sticky-note,
 .sticky-bubble.active .sticky-note {
@@ -262,13 +263,13 @@ body {
   fill: var(--cyan);
 }
 .callout-box {
-  background: rgba(20, 35, 55, 0.92);
-  border: 1px solid rgba(78, 201, 212, 0.4);
+  background: rgba(14, 26, 42, 0.95);
+  border: 1px solid rgba(127, 222, 234, 0.45);
   border-radius: 3px;
   padding: 8px 12px;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: var(--cyan);
+  font-size: 0.62rem;
+  color: var(--cyan-text);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -276,9 +277,10 @@ body {
 }
 .callout-box .callout-title {
   color: var(--white);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   margin-bottom: 4px;
   letter-spacing: 0.1em;
+  font-weight: 600;
 }
 .callout-box .callout-metrics {
   display: flex;
@@ -286,12 +288,12 @@ body {
   flex-wrap: wrap;
 }
 .callout-box .callout-metric {
-  color: var(--cyan);
-  opacity: 0.85;
+  color: var(--cyan-text);
 }
 .callout-box .callout-metric::before {
   content: '▸ ';
-  opacity: 0.5;
+  color: var(--accent);
+  opacity: 0.85;
 }
 @keyframes calloutIn {
   from { opacity: 0; transform: translateY(4px); }
@@ -311,13 +313,13 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  background: rgba(20, 35, 55, 0.92);
-  border: 1px solid rgba(78, 201, 212, 0.35);
+  padding: 9px 14px;
+  background: rgba(14, 26, 42, 0.95);
+  border: 1px solid rgba(127, 222, 234, 0.4);
   border-radius: 3px;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   color: var(--white);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -678,27 +680,30 @@ body {
 }
 .corner-tag-name {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   letter-spacing: 0.15em;
   color: var(--white);
+  text-shadow: 0 0 12px rgba(26,35,50,0.8);
 }
 .corner-tag-role {
   font-family: var(--font-mono);
-  font-size: 0.52rem;
-  color: var(--text-muted);
+  font-size: 0.62rem;
+  color: var(--text);
   letter-spacing: 0.12em;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
+  text-shadow: 0 0 8px rgba(26,35,50,0.9);
 }
 .hint-tag {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text);
   animation: fadeUp 0.8s 1.4s both;
+  text-shadow: 0 0 8px rgba(26,35,50,0.9);
 }
 
 /* ─── SECTION CONTENT ─── */
@@ -706,14 +711,14 @@ body {
   max-width: 900px;
   margin: 0 auto;
   padding: 7rem 2rem 6rem;
-  background: rgba(20, 35, 55, 0.75);
-  border: 1px solid rgba(78,201,212,0.08);
+  background: rgba(14, 26, 42, 0.82);
+  border: 1px solid rgba(78,201,212,0.12);
   border-radius: 4px;
   min-height: 100vh;
 }
 .sec-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   letter-spacing: 0.25em;
   color: var(--accent);
   text-transform: uppercase;
@@ -722,6 +727,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   animation: fadeUp 0.5s 0.1s both;
+  font-weight: 600;
 }
 .sec-eyebrow::before { content: ''; display: block; width: 28px; height: 1px; background: var(--accent); }
 .sec-title {
@@ -734,16 +740,16 @@ body {
   animation: fadeUp 0.5s 0.2s both;
 }
 .sec-body {
-  font-size: 1rem;
-  line-height: 2;
-  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text);
   max-width: 620px;
   animation: fadeUp 0.5s 0.3s both;
 }
 .sec-divider {
   width: 100%;
   height: 1px;
-  background: rgba(78,201,212,0.15);
+  background: rgba(78,201,212,0.22);
   margin: 3rem 0;
   animation: fadeUp 0.4s 0.35s both;
 }
@@ -799,23 +805,25 @@ body {
 }
 .card-label {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  color: var(--accent);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: #b8421f;
   text-transform: uppercase;
   margin-bottom: 0.6rem;
+  font-weight: 600;
 }
 .card-value {
   font-family: var(--font-display);
   font-size: 1.4rem;
   letter-spacing: 0.05em;
-  color: #2C1810;
+  color: #1a0d05;
 }
 .card-sub {
-  font-size: 0.82rem;
-  color: #5C4033;
+  font-size: 0.85rem;
+  color: #3d2817;
   margin-top: 0.4rem;
   line-height: 1.55;
+  font-weight: 500;
 }
 
 /* ─── GITHUB CARD ─── */
@@ -824,16 +832,16 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  background: rgba(78,201,212,0.08);
-  border: 1px solid rgba(78,201,212,0.2);
+  background: rgba(78,201,212,0.1);
+  border: 1px solid rgba(78,201,212,0.28);
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
   margin-top: 2rem;
 }
 .github-card:hover {
-  background: rgba(78,201,212,0.14);
-  border-color: var(--cyan);
+  background: rgba(78,201,212,0.16);
+  border-color: var(--cyan-text);
 }
 .github-card-icon {
   font-size: 1.8rem;
@@ -843,26 +851,27 @@ body {
 }
 .github-card-label {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   letter-spacing: 0.12em;
   color: var(--white);
   text-transform: uppercase;
+  font-weight: 600;
 }
 .github-card-desc {
   font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: var(--text-muted);
-  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--text);
+  margin-top: 0.3rem;
 }
 .github-card-arrow {
   font-family: var(--font-mono);
   font-size: 1rem;
-  color: var(--cyan);
+  color: var(--cyan-text);
 }
 
 /* ─── JOB ENTRY ─── */
 .job-entry {
-  border-bottom: 1px solid rgba(78,201,212,0.1);
+  border-bottom: 1px solid rgba(78,201,212,0.18);
   padding: 2.5rem 0;
   display: grid;
   grid-template-columns: 180px 1fr;
@@ -872,15 +881,16 @@ body {
 }
 .job-period {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--accent);
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  font-weight: 600;
 }
 .job-company {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  color: var(--text);
   margin-top: 0.4rem;
 }
 .job-title {
@@ -893,25 +903,27 @@ body {
 .job-bullets { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
 .job-bullet {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: 0.82rem;
+  color: var(--text);
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 .job-bullet-marker { color: var(--accent); flex-shrink: 0; }
 
-/* ─── SKILL/TOOL LIST ITEMS ─── */
+/* ─── SKILL/TOOL LIST ITEMS (on sticky note backgrounds) ─── */
 .list-item {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-muted);
+  font-size: 0.72rem;
+  color: #2C1810;
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  line-height: 1.5;
+  font-weight: 500;
 }
-.list-marker { font-size: 0.5rem; }
+.list-marker { font-size: 0.55rem; }
 
 /* ─── NOTE COLOR ROTATION for cards ─── */
 .placeholder-card:nth-child(4n+1) { --note-bg: #F7E98E; --rot: 1.5deg; }
@@ -949,13 +961,13 @@ body {
   opacity: 0.35;
 }
 .cad-dim-text {
-  fill: var(--cyan);
+  fill: var(--cyan-text);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   text-anchor: middle;
   dominant-baseline: auto;
   dy: -4px;
-  opacity: 0.8;
+  opacity: 1;
 }
 .cad-start-marker {
   fill: none;
@@ -974,19 +986,20 @@ body {
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--cyan);
-  background: rgba(20, 35, 55, 0.92);
-  border: 1px solid rgba(78, 201, 212, 0.4);
+  color: var(--cyan-text);
+  background: rgba(14, 26, 42, 0.95);
+  border: 1px solid rgba(127, 222, 234, 0.45);
   border-radius: 3px;
-  padding: 6px 14px;
+  padding: 7px 14px;
   white-space: nowrap;
   pointer-events: none;
   z-index: 20;
   animation: cadInstructionsIn 0.3s both;
   box-shadow: 0 0 12px rgba(78,201,212,0.1);
+  font-weight: 500;
 }
 
 @keyframes cadInstructionsIn {
@@ -998,9 +1011,7 @@ body {
 .mobile-landing {
   position: fixed;
   inset: 0;
-  /* Allow scrolling so the 8 nav cards aren't clipped on short phones. */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1034,10 +1045,10 @@ body {
 }
 .mobile-role {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
-  color: var(--text-muted);
+  font-size: 0.6rem;
+  color: var(--text);
   letter-spacing: 0.1em;
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
   text-align: center;
 }
 .mobile-cards {
@@ -1093,23 +1104,25 @@ body {
 .mobile-card-text { flex: 1; min-width: 0; }
 .mobile-card-label {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #2C1810;
-  font-weight: 500;
+  color: #1a0d05;
+  font-weight: 600;
 }
 .mobile-card-desc {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
-  color: #5C4033;
-  margin-top: 0.1rem;
+  font-size: 0.6rem;
+  color: #3d2817;
+  margin-top: 0.18rem;
+  font-weight: 500;
 }
 .mobile-card-arrow {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: #5C4033;
+  font-size: 0.85rem;
+  color: #3d2817;
   transition: transform 0.2s;
+  font-weight: 600;
 }
 .mobile-card:hover .mobile-card-arrow { transform: translateX(2px); }
 
@@ -1125,16 +1138,17 @@ body {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.6rem 1rem;
-  background: rgba(20, 35, 55, 0.9);
-  border: 1px solid rgba(78,201,212,0.3);
+  padding: 0.7rem 1rem;
+  background: rgba(14, 26, 42, 0.95);
+  border: 1px solid rgba(127, 222, 234, 0.4);
   border-radius: 3px;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--white);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-weight: 500;
 }
 
 /* ─── MOBILE OVERRIDES ─── */
@@ -1207,3 +1221,17 @@ body {
       border-radius 0.35s cubic-bezier(0.76, 0, 0.24, 1);
   }
 }
+
+/* =========================================================================
+   HUD visibility gate — hide the floating widgets on non-landing pages.
+   Set on <html data-app-view="..."> by App.jsx. Toasts and the dev overlay
+   stay visible so unlocks/auth still work mid-section.
+   ========================================================================= */
+:root[data-app-view]:not([data-app-view="landing"]) .ach-hud,
+:root[data-app-view]:not([data-app-view="landing"]) .au-hud,
+:root[data-app-view]:not([data-app-view="landing"]) .zz-theme-switcher,
+:root[data-app-view]:not([data-app-view="landing"]) .dm-hud {
+  display: none !important;
+}
+
+/* End of stylesheet — keep this comment to force Vite HMR to pick up appended rules. */

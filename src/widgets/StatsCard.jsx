@@ -248,9 +248,20 @@ export default function StatsCard() {
     return () => window.removeEventListener('deviceorientation', onOrient);
   }, [orientPermission, schedule]);
 
+  /* ── Fire achievement event on every flip ── */
+  const fireFlipEvent = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.dispatchEvent(new CustomEvent('achievement:card-flipped'));
+    } catch {
+      /* CustomEvent unsupported — silently noop */
+    }
+  }, []);
+
   /* ── Click / tap: flip + (on iOS) request orientation permission ── */
   const onCardClick = useCallback(async () => {
     setFlipped((f) => !f);
+    fireFlipEvent();
     if (
       typeof window !== 'undefined' &&
       'DeviceOrientationEvent' in window &&
@@ -264,15 +275,16 @@ export default function StatsCard() {
         setOrientPermission('denied');
       }
     }
-  }, [orientPermission]);
+  }, [orientPermission, fireFlipEvent]);
 
   /* ── Keyboard accessibility ── */
   const onKey = useCallback((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       setFlipped((f) => !f);
+      fireFlipEvent();
     }
-  }, []);
+  }, [fireFlipEvent]);
 
   /* ───────────────────── Render ───────────────────── */
   return (

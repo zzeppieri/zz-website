@@ -13,8 +13,8 @@
   --pc-green-dim: #4a8f60;
   --pc-amber: #ffb454;
   --pc-amber-dim: #8a5f2c;
-  --pc-text-dim: rgba(127, 219, 156, 0.55);
-  --pc-text-mute: rgba(127, 219, 156, 0.35);
+  --pc-text-dim: rgba(168, 245, 190, 0.82);   /* bumped from 0.55 + lighter base for legibility */
+  --pc-text-mute: rgba(168, 245, 190, 0.7);   /* bumped from 0.35 — was unreadable on small caps */
   --pc-divider: rgba(127, 219, 156, 0.15);
   --pc-cell-bg: #051208;
   --pc-cell-shadow: rgba(127, 219, 156, 0.18);
@@ -112,7 +112,8 @@
 
 .pc-live-text {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.62rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--pc-green-bright);
@@ -143,7 +144,8 @@
 
 .pc-channel {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.52rem;
+  font-size: 0.65rem;
+  font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--pc-text-dim);
@@ -176,7 +178,8 @@
 
 .pc-label {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--pc-text-dim);
@@ -184,7 +187,8 @@
   line-height: 1.3;
 }
 .pc-readout--primary .pc-label {
-  font-size: 0.58rem;
+  font-size: 0.74rem;
+  font-weight: 600;
   letter-spacing: 0.22em;
   color: var(--pc-green);
 }
@@ -269,7 +273,8 @@
   margin: 0.5rem 0.25rem 0;
   border-top: 1px solid var(--pc-divider);
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--pc-text-mute);
@@ -309,7 +314,7 @@
     margin: 0.1rem 0.15rem 0.55rem;
   }
   .pc-channel {
-    font-size: 0.48rem;
+    font-size: 0.62rem;
     flex-basis: 100%;
     text-align: right;
     margin-top: -0.15rem;
@@ -330,7 +335,7 @@
     font-size: 1.3rem;
   }
   .pc-readout--primary .pc-label {
-    font-size: 0.54rem;
+    font-size: 0.7rem;
   }
 }
 

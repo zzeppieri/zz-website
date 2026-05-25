@@ -30,6 +30,13 @@ class ErrorBoundary extends Component {
 export default function App() {
   // view: 'landing' | 'zooming-in' | 'section' | 'crt-closing' | 'zooming-out'
   const [view, setView] = useState('landing')
+
+  // Publish view onto <html data-app-view="..."> so HUD CSS can hide on
+  // non-landing pages without prop-drilling. Set early so CSS sees it on
+  // the very first paint.
+  useEffect(() => {
+    document.documentElement.dataset.appView = view
+  }, [view])
   const [currentSection, setCurrentSection] = useState(null)
   const [sectionColor, setSectionColor] = useState('#4a7cf9')
   const [zoomClass, setZoomClass] = useState('')

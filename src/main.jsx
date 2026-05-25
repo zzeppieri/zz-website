@@ -24,10 +24,13 @@ function AchievementsBridge() {
   const { unlock } = useAchievements()
   React.useEffect(() => {
     const map = [
-      ['achievement:konami',            'konami'],
-      ['achievement:lean-lego-win',     'kaizen_master'],   // 5S puzzle = kaizen master
-      ['achievement:resume-downloaded', 'card_flipped'],    // proxy until a real id added
-      ['achievement:dev-mode-unlocked', 'dev_mode'],
+      ['achievement:konami',             'konami'],
+      ['achievement:lean-lego-win',      'kaizen_master'],
+      ['achievement:dev-mode-unlocked',  'dev_mode'],
+      ['achievement:card-flipped',       'card_flipped'],
+      ['achievement:printer-completed',  'printer_complete'],
+      ['achievement:snake-played',       'snake_played'],
+      ['achievement:snake-score-100',    'snake_score_100'],
     ]
     const handlers = map.map(([evt, id]) => {
       const h = () => unlock(id)

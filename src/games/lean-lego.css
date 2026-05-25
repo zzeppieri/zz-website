@@ -3,6 +3,17 @@
    Scoped under .ll-  •  dark navy + CRT green + amber/cyan
    ============================================================ */
 
+/* Outer shell hosts the game and the desktop side leaderboard. */
+.ll-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 540px;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 10px;
+}
+
 .ll-root {
   --ll-bg: #1a2332;
   --ll-bg-2: #141d2c;
@@ -142,44 +153,89 @@
   position: absolute;
   top: 6px;
   left: 10px;
+  right: 10px;
   font-family: 'VT323', monospace;
-  font-size: 14px;
-  letter-spacing: 0.12em;
+  font-size: 13px;
+  letter-spacing: 0.1em;
   color: var(--ll-orange);
   text-transform: uppercase;
   pointer-events: none;
   z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ─── Tool tiles ─── */
+/* Base shared by placed (in-zone) tiles — compact inline row. */
 .ll-tool {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: linear-gradient(180deg, #243349, #1c283a);
   border: 1px solid var(--ll-border-strong);
   border-radius: 6px;
   color: var(--ll-text);
-  font-size: 12px;
+  font-size: 11px;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   box-shadow: 0 2px 4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
   transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-  white-space: nowrap;
   position: relative;
 }
-.ll-tool-icon { font-size: 18px; line-height: 1; }
-.ll-tool-name { letter-spacing: 0.02em; }
+.ll-tool-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ll-tool-name {
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Placed tiles inside a zone keep a single line w/ ellipsis. */
+.ll-tool-name-placed {
+  white-space: nowrap;
+  max-width: 120px;
+}
 
+/* Chaos tiles — fixed width, icon stacked above name (2-line clamp). */
 .ll-tool-chaos {
   position: absolute;
   cursor: grab;
   touch-action: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 120px;
+  height: 78px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.ll-tool-chaos .ll-tool-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+.ll-tool-chaos .ll-tool-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+  white-space: normal;
+  font-size: 10.5px;
+  line-height: 1.18;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 .ll-tool-chaos:hover {
   border-color: var(--ll-cyan);
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 0 1px rgba(78,201,212,0.25);
+  z-index: 2;
 }
 .ll-tool-chaos:active { cursor: grabbing; }
 .ll-tool-dragging { opacity: 0.25; }
@@ -189,6 +245,7 @@
   border-color: var(--ll-green);
   box-shadow: 0 0 0 1px rgba(127,219,156,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
   cursor: default;
+  max-width: 100%;
 }
 
 .ll-tool-shake { animation: ll-shake 0.4s ease; border-color: var(--ll-red) !important; }
@@ -213,6 +270,7 @@
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  z-index: 3;
 }
 
 /* ─── 5S Zones grid ─── */
@@ -270,16 +328,21 @@
 }
 .ll-zone-label {
   font-family: 'VT323', monospace;
-  font-size: 18px;
-  letter-spacing: 0.1em;
+  font-size: 17px;
+  letter-spacing: 0.08em;
   color: var(--zone-color);
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
 }
 .ll-zone-ja {
   font-family: 'VT323', monospace;
   font-size: 13px;
   color: var(--ll-muted);
   letter-spacing: 0.1em;
+  flex-shrink: 0;
 }
 .ll-zone-desc {
   font-size: 11px;
@@ -289,10 +352,15 @@
 }
 .ll-zone-slots {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
   align-content: flex-start;
   flex: 1;
+  overflow: hidden;
+}
+.ll-zone-slots .ll-tool-placed {
+  width: 100%;
+  justify-content: flex-start;
 }
 .ll-zone-empty {
   font-family: 'VT323', monospace;
@@ -310,21 +378,33 @@
   position: fixed;
   pointer-events: none;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
   background: linear-gradient(180deg, #2d4259, #1c283a);
   border: 1px solid var(--ll-cyan);
   border-radius: 6px;
   color: var(--ll-text);
-  font-size: 12px;
+  font-size: 10.5px;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   box-shadow: 0 8px 20px rgba(0,0,0,0.55), 0 0 0 2px rgba(78,201,212,0.25);
   z-index: 9999;
-  white-space: nowrap;
+  text-align: center;
   transform: rotate(-1deg);
+  overflow: hidden;
 }
-.ll-drag-ghost .ll-tool-icon { font-size: 18px; }
+.ll-drag-ghost .ll-tool-icon { font-size: 22px; }
+.ll-drag-ghost .ll-tool-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+  white-space: normal;
+  line-height: 1.18;
+}
 
 /* ─── Win overlay ─── */
 .ll-win-overlay {
@@ -380,7 +460,145 @@
 }
 .ll-win-stats .ll-mono { color: var(--ll-green); font-size: 16px; }
 
+/* ─── Name modal ─── */
+.ll-name-card { display: flex; flex-direction: column; align-items: stretch; min-width: 280px; }
+.ll-name-label {
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--ll-muted);
+  text-transform: uppercase;
+  text-align: left;
+  margin-bottom: 6px;
+}
+.ll-name-input {
+  background: #0f1622;
+  color: var(--ll-text);
+  border: 1px solid var(--ll-border-strong);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+  outline: none;
+}
+.ll-name-input:focus {
+  border-color: var(--ll-cyan);
+  box-shadow: 0 0 0 2px rgba(78,201,212,0.25);
+}
+
+/* ─── Leaderboard (desktop side panel) ─── */
+.ll-lb-side {
+  background: linear-gradient(180deg, #1f2b3d, #141d2c);
+  border: 1px solid var(--ll-border, #2a3a52);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  color: #e0e8f0;
+  overflow: auto;
+  min-height: 540px;
+  height: 100%;
+}
+.ll-lb-head {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  color: #7fdb9c;
+  text-transform: uppercase;
+  text-align: center;
+  border-bottom: 1px dashed #2a3a52;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.ll-lb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ll-lb-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid #2a3a52;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.ll-lb-rank {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: #8899aa;
+  text-align: right;
+}
+.ll-lb-rank-1 { border-color: #f5d142; }
+.ll-lb-rank-1 .ll-lb-rank { color: #f5d142; }
+.ll-lb-rank-2 .ll-lb-rank { color: #c0c8d4; }
+.ll-lb-rank-3 .ll-lb-rank { color: #e08c5a; }
+.ll-lb-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #e0e8f0;
+}
+.ll-lb-time { color: #7fdb9c; font-size: 12px; }
+.ll-lb-err {
+  font-family: 'VT323', monospace;
+  font-size: 11px;
+  color: #ff9a3c;
+  letter-spacing: 0.08em;
+}
+.ll-lb-empty {
+  font-size: 11px;
+  color: #8899aa;
+  text-align: center;
+  padding: 12px 4px;
+  line-height: 1.5;
+}
+
+/* ─── Mobile leaderboard toggle (hidden on desktop) ─── */
+.ll-lb-toggle {
+  display: none;
+  margin: 0 12px 10px;
+  background: #0f1622;
+  color: #e0e8f0;
+  border: 1px solid #3a4f70;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  text-transform: uppercase;
+  text-align: center;
+}
+.ll-lb-toggle-open { border-color: #7fdb9c; color: #7fdb9c; }
+.ll-lb-mobile {
+  display: none;
+  margin: 0 12px 12px;
+  padding: 8px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid #2a3a52;
+  border-radius: 6px;
+}
+
 /* ─── Mobile ─── */
+@media (max-width: 900px) {
+  .ll-shell {
+    grid-template-columns: 1fr;
+  }
+  .ll-lb-side {
+    display: none;
+  }
+  .ll-lb-toggle { display: block; }
+  .ll-lb-mobile { display: block; }
+}
+
 @media (max-width: 760px) {
   .ll-root { min-height: 600px; }
   .ll-hud { padding: 8px 10px; gap: 6px; }
@@ -388,7 +606,7 @@
   .ll-hud-val { font-size: 16px; }
   .ll-title { font-size: 18px; }
   .ll-subtitle { display: none; }
-  .ll-chaos { height: 200px; margin: 8px; }
+  .ll-chaos { height: 240px; margin: 8px; }
   .ll-zones {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -397,8 +615,8 @@
   .ll-zone { min-height: auto; padding: 8px; }
   .ll-zone-desc { min-height: 0; }
   .ll-zone-empty { margin: 4px 0; padding: 6px 0; }
-  .ll-zone-label { font-size: 16px; }
-  .ll-tool { font-size: 11px; padding: 6px 10px; }
+  .ll-zone-label { font-size: 16px; max-width: 75%; }
+  .ll-tool { font-size: 11px; padding: 6px 8px; }
   .ll-tool-icon { font-size: 16px; }
   .ll-btn { padding: 6px 10px; font-size: 14px; }
   .ll-win-title { font-size: 28px; }
@@ -406,7 +624,7 @@
 }
 
 @media (max-width: 420px) {
-  .ll-chaos { height: 240px; }
+  .ll-chaos { height: 260px; }
   .ll-hud-stat { gap: 0; }
   .ll-hud-label { font-size: 11px; }
 }

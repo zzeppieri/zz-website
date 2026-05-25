@@ -8,6 +8,47 @@ const START_STEPS_PER_SEC = 6;         // ~6 cells/sec
 const MAX_STEPS_PER_SEC = 15;
 const SPEED_GROWTH = 1.05;             // +5% per food
 const HS_KEY = 'circuit_snake_highscore';
+const LB_KEY = 'circuit_snake_leaderboard';
+const LB_CAP = 10;
+const NAME_MAX = 24;
+const SIDEBAR_BREAKPOINT = 700;        // px — desktop sidebar vs mobile collapsible
+
+/* ───── achievement dispatch (defensive) ───── */
+function fireAchievement(name) {
+  try {
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent(name));
+    }
+  } catch (_) { /* ignore */ }
+}
+
+/* ───── leaderboard helpers ───── */
+function loadLeaderboard() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(LB_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((e) => e && typeof e === 'object' && Number.isFinite(e.score))
+      .map((e) => ({
+        name: String(e.name || 'Anonymous').slice(0, NAME_MAX),
+        score: e.score | 0,
+        date: String(e.date || ''),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, LB_CAP);
+  } catch (_) {
+    return [];
+  }
+}
+function saveLeaderboard(list) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(LB_KEY, JSON.stringify(list));
+  } catch (_) { /* ignore */ }
+}
 
 /* Direction vectors */
 const DIRS = {
@@ -59,8 +100,21 @@ export default function CircuitSnake() {
   const [started, setStarted] = useState(false);
   const [, forceRender] = useState(0);   // bump to redraw segments
 
+  /* leaderboard + name-input state */
+  const [leaderboard, setLeaderboard] = useState(() => loadLeaderboard());
+  const [nameInputPhase, setNameInputPhase] = useState('idle'); // 'idle' | 'prompt' | 'list'
+  const [nameInput, setNameInput] = useState('Anonymous');
+  const [isNarrow, setIsNarrow] = useState(false); // < SIDEBAR_BREAKPOINT
+  const [mobileLbOpen, setMobileLbOpen] = useState(false);
+
+  /* achievement guards (per-session = component-instance) */
+  const achPlayedFiredRef = useRef(false);
+  const achScore100FiredRef = useRef(false);
+
   /* mutable refs — fast path, no re-renders */
+  const rootRef = useRef(null);
   const screenRef = useRef(null);
+  const nameInputElRef = useRef(null);
   const snakeRef = useRef(initialSnake());
   const foodRef = useRef(randomEmptyCell(snakeRef.current));
   const dirRef = useRef('right');
@@ -83,6 +137,28 @@ export default function CircuitSnake() {
   useEffect(() => { startedRef.current = started; }, [started]);
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { highScoreRef.current = highScore; }, [highScore]);
+
+  /* ───── container width tracker (drives desktop sidebar vs mobile collapsible) ───── */
+  useLayoutEffect(() => {
+    const el = rootRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const w = el.clientWidth || 0;
+      setIsNarrow(w < SIDEBAR_BREAKPOINT);
+    };
+    update();
+    let ro;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(update);
+      ro.observe(el);
+    } else {
+      window.addEventListener('resize', update);
+    }
+    return () => {
+      if (ro) ro.disconnect();
+      else window.removeEventListener('resize', update);
+    };
+  }, []);
 
   /* ───── responsive cell sizing ───── */
   useLayoutEffect(() => {
@@ -121,6 +197,8 @@ export default function CircuitSnake() {
     setScore(0);
     setGameOver(false);
     setPaused(false);
+    setNameInputPhase('idle');
+    setNameInput('Anonymous');
     forceRender((n) => n + 1);
   }, []);
 
@@ -142,6 +220,11 @@ export default function CircuitSnake() {
 
   /* ───── tick: advance one cell ───── */
   const step = useCallback(() => {
+    // achievement: first game-tick this session
+    if (!achPlayedFiredRef.current) {
+      achPlayedFiredRef.current = true;
+      fireAchievement('achievement:snake-played');
+    }
     if (dirQueueRef.current.length) dirRef.current = dirQueueRef.current.shift();
     const d = DIRS[dirRef.current];
     const snake = snakeRef.current;
@@ -178,6 +261,11 @@ export default function CircuitSnake() {
         setHighScore(newScore);
         try { window.localStorage.setItem(HS_KEY, String(newScore)); } catch (_) { /* ignore */ }
       }
+      // achievement: hit score 100 (once per session)
+      if (newScore >= 100 && !achScore100FiredRef.current) {
+        achScore100FiredRef.current = true;
+        fireAchievement('achievement:snake-score-100');
+      }
       stepsPerSecRef.current = Math.min(
         MAX_STEPS_PER_SEC,
         stepsPerSecRef.current * SPEED_GROWTH
@@ -189,7 +277,45 @@ export default function CircuitSnake() {
   const endGame = useCallback(() => {
     gameOverRef.current = true;
     setGameOver(true);
+    // start the leaderboard name-input flow after the HALT banner mounts
+    setNameInputPhase('prompt');
+    setNameInput('Anonymous');
   }, []);
+
+  /* ───── leaderboard submit / skip ───── */
+  const submitScore = useCallback(() => {
+    const finalScore = scoreRef.current;
+    const cleanName = (nameInput || 'Anonymous').trim().slice(0, NAME_MAX) || 'Anonymous';
+    const entry = {
+      name: cleanName,
+      score: finalScore,
+      date: new Date().toISOString().slice(0, 10),
+    };
+    setLeaderboard((prev) => {
+      const merged = [...prev, entry]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, LB_CAP);
+      saveLeaderboard(merged);
+      return merged;
+    });
+    setNameInputPhase('list');
+  }, [nameInput]);
+
+  const skipScore = useCallback(() => {
+    setNameInputPhase('list');
+  }, []);
+
+  /* focus the name input when the prompt appears */
+  useEffect(() => {
+    if (nameInputPhase === 'prompt' && nameInputElRef.current) {
+      const el = nameInputElRef.current;
+      const id = window.setTimeout(() => {
+        try { el.focus(); el.select(); } catch (_) { /* ignore */ }
+      }, 40);
+      return () => window.clearTimeout(id);
+    }
+    return undefined;
+  }, [nameInputPhase]);
 
   /* ───── rAF loop ───── */
   useEffect(() => {
@@ -224,6 +350,11 @@ export default function CircuitSnake() {
   /* ───── keyboard ───── */
   useEffect(() => {
     const onKey = (e) => {
+      // While the name-input overlay is up, don't hijack typing keys.
+      // Form-level keydown (Enter) is handled on the input itself.
+      if (e.target && e.target.tagName === 'INPUT') return;
+      if (nameInputPhase === 'prompt') return;
+
       const k = e.key;
       let dir = null;
       if (k === 'ArrowUp' || k === 'w' || k === 'W') dir = 'up';
@@ -252,7 +383,7 @@ export default function CircuitSnake() {
     };
     window.addEventListener('keydown', onKey, { passive: false });
     return () => window.removeEventListener('keydown', onKey);
-  }, [enqueueDir, reset]);
+  }, [enqueueDir, reset, nameInputPhase]);
 
   /* ───── touch (swipe) ───── */
   useEffect(() => {
@@ -356,8 +487,66 @@ export default function CircuitSnake() {
     setPaused((p) => !p);
   };
 
+  /* ───── leaderboard render helpers ───── */
+  const renderLeaderboardList = () => {
+    if (!leaderboard.length) {
+      return (
+        <div className="cs-lb-empty">
+          NO ENTRIES &mdash; BE THE FIRST.
+        </div>
+      );
+    }
+    return (
+      <ol className="cs-lb-list">
+        {leaderboard.map((e, i) => (
+          <li key={`${e.name}-${e.date}-${i}`} className="cs-lb-row">
+            <span className="cs-lb-rank">{String(i + 1).padStart(2, '0')}</span>
+            <span className="cs-lb-name" title={e.name}>{e.name}</span>
+            <span className="cs-lb-score">{String(e.score).padStart(4, '0')}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  };
+
+  const leaderboardPanel = (
+    <aside className="cs-lb-panel" aria-label="Circuit Snake leaderboard">
+      <div className="cs-lb-header">
+        <span className="cs-lb-title">LEADERBOARD</span>
+        <span className="cs-lb-sub">TOP {LB_CAP}</span>
+      </div>
+      {renderLeaderboardList()}
+    </aside>
+  );
+
+  const mobileLeaderboardPanel = (
+    <div className="cs-lb-collapsible">
+      <button
+        type="button"
+        className="cs-lb-toggle"
+        aria-expanded={mobileLbOpen}
+        onClick={() => setMobileLbOpen((o) => !o)}
+      >
+        <span>LEADERBOARD</span>
+        <span className="cs-lb-caret" aria-hidden="true">{mobileLbOpen ? '▴' : '▾'}</span>
+      </button>
+      {mobileLbOpen && (
+        <div className="cs-lb-collapsible-body">
+          {renderLeaderboardList()}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="cs-root" role="region" aria-label="Circuit Snake game">
+    <div
+      className={`cs-root${isNarrow ? ' cs-narrow' : ' cs-wide'}`}
+      role="region"
+      aria-label="Circuit Snake game"
+      ref={rootRef}
+    >
+      <div className="cs-layout">
+      <div className="cs-main">
       <div className="cs-hud">
         <div>
           <span className="cs-hud-label">SCORE</span>
@@ -419,10 +608,55 @@ export default function CircuitSnake() {
             </div>
           )}
 
-          {gameOver && (
+          {gameOver && nameInputPhase === 'idle' && (
             <div className="cs-overlay">
               <div className="cs-overlay-title cs-halt">SYSTEM HALT</div>
               <div className="cs-overlay-sub">SCORE: {score}</div>
+              <button type="button" className="cs-btn" onClick={reset}>
+                RESTART
+              </button>
+              <div className="cs-overlay-hint">PRESS R OR ENTER</div>
+            </div>
+          )}
+
+          {gameOver && nameInputPhase === 'prompt' && (
+            <div className="cs-overlay cs-overlay-name">
+              <div className="cs-overlay-title cs-halt">SYSTEM HALT</div>
+              <div className="cs-overlay-sub">SCORE: {score}</div>
+              <form
+                className="cs-name-form"
+                onSubmit={(e) => { e.preventDefault(); submitScore(); }}
+              >
+                <label className="cs-name-label" htmlFor="cs-name-input">
+                  IDENTIFY OPERATOR:
+                </label>
+                <input
+                  id="cs-name-input"
+                  ref={nameInputElRef}
+                  className="cs-name-input"
+                  type="text"
+                  maxLength={NAME_MAX}
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  spellCheck={false}
+                  autoComplete="off"
+                  aria-label="Enter your name for the leaderboard"
+                />
+                <div className="cs-name-actions">
+                  <button type="submit" className="cs-btn">SUBMIT</button>
+                  <button type="button" className="cs-btn cs-btn-dim" onClick={skipScore}>SKIP</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {gameOver && nameInputPhase === 'list' && (
+            <div className="cs-overlay cs-overlay-list">
+              <div className="cs-overlay-title cs-halt">SYSTEM HALT</div>
+              <div className="cs-overlay-sub">TOP {LB_CAP}</div>
+              <div className="cs-overlay-lb">
+                {renderLeaderboardList()}
+              </div>
               <button type="button" className="cs-btn" onClick={reset}>
                 RESTART
               </button>
@@ -439,6 +673,11 @@ export default function CircuitSnake() {
           <span className="cs-key">&larr;</span><span className="cs-key">&uarr;</span><span className="cs-key">&darr;</span><span className="cs-key">&rarr;</span>
         </div>
         <div>SPD <span className="cs-hud-value">{stepsPerSecRef.current.toFixed(1)}</span></div>
+      </div>
+
+      {isNarrow && mobileLeaderboardPanel}
+      </div>
+      {!isNarrow && leaderboardPanel}
       </div>
     </div>
   );

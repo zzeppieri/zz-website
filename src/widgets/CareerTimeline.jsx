@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, useLayoutEffect } from 'react'
 import './career-timeline.css'
 
 /* ─── Data: Zach's career stops (chronological) ───────────────────────────── */
@@ -118,26 +118,71 @@ const STOPS = [
   },
 ]
 
-/* ─── Layout: pixel offset for each stop along the rail ───────────────────── */
-const STOP_SPACING = 280 // px between stops on desktop
-const SIDE_PAD     = 80  // matches CSS .tl-track padding
+/* ─── Layout constants ─────────────────────────────────────────────────────── */
+const STOP_SPACING_DESKTOP = 280 // px between stops on desktop
+const SIDE_PAD              = 80  // matches CSS .tl-track horizontal padding
+const MOBILE_BREAKPOINT     = 700 // container width threshold for mobile layout
 
-function useIsMobile(breakpoint = 700) {
-  const [mobile, setMobile] = useState(
-    typeof window !== 'undefined' && window.innerWidth <= breakpoint
+/* Hook: track CONTAINER width (not viewport) via ResizeObserver.
+   Falls back to window.innerWidth if RO is unavailable.                       */
+function useContainerWidth(ref) {
+  const [width, setWidth] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1024
   )
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    // initial measure
+    setWidth(el.getBoundingClientRect().width || window.innerWidth)
+
+    if (typeof ResizeObserver === 'undefined') {
+      const onResize = () => setWidth(el.getBoundingClientRect().width)
+      window.addEventListener('resize', onResize)
+      return () => window.removeEventListener('resize', onResize)
+    }
+
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect?.width
+        if (w && w > 0) setWidth(w)
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref])
+
+  return width
+}
+
+/* Hook: detect touch-primary devices (no hover, coarse pointer).
+   Used to skip drag-pan handlers that fight native touch scrolling.           */
+function useIsTouch() {
+  const [touch, setTouch] = useState(false)
   useEffect(() => {
-    const onResize = () => setMobile(window.innerWidth <= breakpoint)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [breakpoint])
-  return mobile
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(hover: none) and (pointer: coarse)')
+    const update = () => setTouch(mq.matches)
+    update()
+    if (mq.addEventListener) mq.addEventListener('change', update)
+    else mq.addListener(update)
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', update)
+      else mq.removeListener(update)
+    }
+  }, [])
+  return touch
 }
 
 export default function CareerTimeline() {
-  const isMobile = useIsMobile()
+  const rootRef     = useRef(null)
   const viewportRef = useRef(null)
-  const stopRefs = useRef({})
+  const stopRefs    = useRef({})
+
+  const containerWidth = useContainerWidth(rootRef)
+  const isMobile       = containerWidth < MOBILE_BREAKPOINT
+  const isTouch        = useIsTouch()
 
   const [activeId, setActiveId] = useState(null)
   const [progress, setProgress] = useState(0)
@@ -146,10 +191,10 @@ export default function CareerTimeline() {
   const { trackWidth, positioned, axisTicks } = useMemo(() => {
     const positioned = STOPS.map((s, i) => ({
       ...s,
-      x: SIDE_PAD + i * STOP_SPACING,
+      x: SIDE_PAD + i * STOP_SPACING_DESKTOP,
       side: i % 2 === 0 ? 'up' : 'down',
     }))
-    const trackWidth = SIDE_PAD * 2 + (STOPS.length - 1) * STOP_SPACING
+    const trackWidth = SIDE_PAD * 2 + (STOPS.length - 1) * STOP_SPACING_DESKTOP
     // axis ticks at year boundaries — pick first stop of each year
     const seenYears = new Set()
     const axisTicks = []
@@ -160,13 +205,14 @@ export default function CareerTimeline() {
         axisTicks.push({ label: yKey >= 2027 ? 'BEYOND' : String(yKey), x: p.x })
       }
     })
-    // append a final "Q4'26" tick if a future stop exists
+    // append a final Q4'26 tick if a future stop exists
     const future = positioned.find((p) => p.type === 'future')
     if (future) axisTicks.push({ label: future.when, x: future.x })
     return { trackWidth, positioned, axisTicks }
   }, [])
 
-  const activeIdx = positioned.findIndex((s) => s.id === activeId)
+  const activeIdx  = positioned.findIndex((s) => s.id === activeId)
+  const activeStop = activeIdx >= 0 ? positioned[activeIdx] : null
 
   /* ── Scrolling helpers ─────────────────────────────────────────────────── */
   const scrollToStop = useCallback(
@@ -174,15 +220,13 @@ export default function CareerTimeline() {
       const node = stopRefs.current[id]
       const vp = viewportRef.current
       if (!node || !vp) return
+      const behavior = opts.instant ? 'auto' : 'smooth'
       if (isMobile) {
-        node.scrollIntoView({
-          behavior: opts.instant ? 'auto' : 'smooth',
-          block: 'center',
-        })
+        const target = node.offsetTop + node.offsetHeight / 2 - vp.clientHeight / 2
+        vp.scrollTo({ top: Math.max(0, target), behavior })
       } else {
-        // center the stop horizontally
         const target = node.offsetLeft + node.offsetWidth / 2 - vp.clientWidth / 2
-        vp.scrollTo({ left: target, behavior: opts.instant ? 'auto' : 'smooth' })
+        vp.scrollTo({ left: Math.max(0, target), behavior })
       }
     },
     [isMobile]
@@ -191,7 +235,9 @@ export default function CareerTimeline() {
   const moveBy = useCallback(
     (delta) => {
       const currentIdx =
-        activeIdx >= 0 ? activeIdx : nearestStopIdx(viewportRef.current, stopRefs.current, positioned, isMobile)
+        activeIdx >= 0
+          ? activeIdx
+          : nearestStopIdx(viewportRef.current, stopRefs.current, positioned, isMobile)
       const nextIdx = Math.max(0, Math.min(positioned.length - 1, currentIdx + delta))
       const nextId = positioned[nextIdx].id
       setActiveId((prev) => (prev === nextId ? prev : nextId))
@@ -226,25 +272,27 @@ export default function CareerTimeline() {
     return () => vp.removeEventListener('scroll', onScroll)
   }, [isMobile])
 
-  /* ── Mouse-wheel horizontal scroll (desktop) ───────────────────────────── */
+  /* ── Mouse-wheel horizontal scroll (desktop, non-touch only) ───────────── */
   useEffect(() => {
-    if (isMobile) return
+    if (isMobile || isTouch) return
     const vp = viewportRef.current
     if (!vp) return
     const onWheel = (e) => {
-      // translate vertical wheel into horizontal scroll
+      // translate vertical wheel into horizontal scroll, but only if there's
+      // actual horizontal overflow — otherwise let the page scroll naturally
+      const canScrollX = vp.scrollWidth > vp.clientWidth + 1
+      if (!canScrollX) return
       if (e.deltaY === 0 && e.deltaX !== 0) return
-      // only swallow if pointer is over the widget
       e.preventDefault()
       vp.scrollLeft += e.deltaY + e.deltaX
     }
     vp.addEventListener('wheel', onWheel, { passive: false })
     return () => vp.removeEventListener('wheel', onWheel)
-  }, [isMobile])
+  }, [isMobile, isTouch])
 
-  /* ── Drag-to-pan (desktop pointer) ─────────────────────────────────────── */
+  /* ── Drag-to-pan (desktop pointer, non-touch only) ─────────────────────── */
   useEffect(() => {
-    if (isMobile) return
+    if (isMobile || isTouch) return
     const vp = viewportRef.current
     if (!vp) return
     let isDown = false
@@ -252,7 +300,6 @@ export default function CareerTimeline() {
     let startScroll = 0
     let moved = false
     const onDown = (e) => {
-      // ignore clicks on stops (let them register as clicks)
       if (e.button !== 0) return
       isDown = true
       moved = false
@@ -270,7 +317,6 @@ export default function CareerTimeline() {
       if (!isDown) return
       isDown = false
       vp.classList.remove('is-grabbing')
-      // if user dragged, swallow the next click on a stop
       if (moved) {
         const swallow = (ev) => {
           ev.stopPropagation()
@@ -287,7 +333,7 @@ export default function CareerTimeline() {
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [isMobile])
+  }, [isMobile, isTouch])
 
   /* ── Keyboard nav ─────────────────────────────────────────────────────── */
   const onKeyDown = useCallback(
@@ -323,15 +369,32 @@ export default function CareerTimeline() {
     [scrollToStop]
   )
 
-  /* ── Layout switch: clear inline scroll on orientation change ──────────── */
+  /* ── Layout switch: reset scroll on orientation/breakpoint change ──────── */
   useEffect(() => {
     const vp = viewportRef.current
     if (vp) vp.scrollTo({ left: 0, top: 0, behavior: 'auto' })
   }, [isMobile])
 
+  /* ── Close detail panel on outside click (modal behavior) ──────────────── */
+  useEffect(() => {
+    if (!activeId) return
+    const onDocClick = (e) => {
+      const root = rootRef.current
+      if (!root) return
+      // close if click is outside the detail panel AND outside any stop button
+      const panel  = root.querySelector('.tl-detail-panel')
+      const onStop = e.target.closest && e.target.closest('.tl-stop')
+      const onPnl  = panel && panel.contains(e.target)
+      if (!onStop && !onPnl) setActiveId(null)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [activeId])
+
   return (
     <div
-      className="tl-root"
+      ref={rootRef}
+      className={'tl-root' + (isMobile ? ' is-mobile' : ' is-desktop')}
       role="region"
       aria-label="Career timeline — Zachary Zeppieri"
       onKeyDown={onKeyDown}
@@ -382,29 +445,55 @@ export default function CareerTimeline() {
               <span className="tl-node" aria-hidden="true" />
               <span className="tl-card">
                 <span className="tl-card-when">
-                  <span className="tl-card-icon">{s.icon}</span>
-                  {s.when}
+                  <span className="tl-card-icon" aria-hidden="true">{s.icon}</span>
+                  <span className="tl-card-when-text">{s.when}</span>
                 </span>
                 <span className="tl-card-title">{s.title}</span>
                 <span className="tl-card-blurb">{s.blurb}</span>
-                <span className="tl-details">
-                  <span className="tl-details-inner">
-                    <ul className="tl-details-list">
-                      {s.details.map((d, di) => (
-                        <li key={di}>{d}</li>
-                      ))}
-                    </ul>
-                  </span>
-                </span>
               </span>
               {/* sr-only ordinal */}
-              <span style={{ position: 'absolute', left: -9999 }}>
+              <span className="tl-sr-only">
                 Stop {i + 1} of {positioned.length}
               </span>
             </button>
           ))}
         </div>
       </div>
+
+      {/* Modal-style detail panel — overlays inside the widget, never clips */}
+      {activeStop && (
+        <div
+          className="tl-detail-panel"
+          data-type={activeStop.type}
+          role="dialog"
+          aria-label={`Details: ${activeStop.title}`}
+        >
+          <div className="tl-detail-head">
+            <span className="tl-detail-when">
+              <span className="tl-detail-icon" aria-hidden="true">{activeStop.icon}</span>
+              {activeStop.when}
+            </span>
+            <span className={'tl-pill tl-pill-' + activeStop.type}>
+              {pillLabel(activeStop.type)}
+            </span>
+            <button
+              type="button"
+              className="tl-detail-close"
+              onClick={() => setActiveId(null)}
+              aria-label="Close details"
+            >
+              ✕
+            </button>
+          </div>
+          <h3 className="tl-detail-title">{activeStop.title}</h3>
+          <p className="tl-detail-blurb">{activeStop.blurb}</p>
+          <ul className="tl-detail-list">
+            {activeStop.details.map((d, di) => (
+              <li key={di}>{d}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="tl-controls">
         <button
@@ -437,7 +526,19 @@ export default function CareerTimeline() {
   )
 }
 
-/* find nearest stop to current scroll position */
+/* ─── helpers ───────────────────────────────────────────────────────────── */
+
+function pillLabel(type) {
+  switch (type) {
+    case 'promo':     return 'PROMOTION'
+    case 'project':   return 'PROJECT'
+    case 'training':  return 'TRAINING'
+    case 'milestone': return 'MILESTONE'
+    case 'future':    return 'UPCOMING'
+    default:          return type.toUpperCase()
+  }
+}
+
 function nearestStopIdx(vp, refs, stops, isMobile) {
   if (!vp) return 0
   const center = isMobile

@@ -21,7 +21,14 @@
 
   position: relative;
   width: min(360px, 92vw);
-  aspect-ratio: 2.5 / 3.5;
+  /* Was: aspect-ratio: 2.5/3.5 — that clipped the footer because the front
+     face has 6 stats rows + 4 moves + footer that simply don't fit in 504px
+     at 360px wide. We now use an explicit height a touch taller than the
+     classic ratio so the trading-card silhouette is preserved while every
+     row of content stays visible. Faces (absolutely positioned) stretch to
+     fill this box, so front + back are always the same size.
+     360px * 1.56 ≈ 562px desktop, 335px * 1.56 ≈ 522px @ 92vw on mobile. */
+  height: calc(min(360px, 92vw) * 1.56);
   perspective: 1400px;
   font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
   color: var(--sc-text);
@@ -104,14 +111,16 @@
   pointer-events: none;
   border-radius: 10px;
   mix-blend-mode: color-dodge;
-  opacity: var(--sc-holo-opacity, 0);
+  /* Cap shimmer intensity at 0.55 so it never blows out the gold name text.
+     The applied var still drives in/out fade smoothly. */
+  opacity: calc(var(--sc-holo-opacity, 0) * 0.65);
   background:
     radial-gradient(
       circle at var(--sc-mx, 50%) var(--sc-my, 50%),
-      rgba(255,255,255,0.35) 0%,
-      rgba(127,219,156,0.18) 18%,
-      rgba(255,184,74,0.14) 30%,
-      rgba(120,90,200,0.10) 45%,
+      rgba(255,255,255,0.28) 0%,
+      rgba(127,219,156,0.16) 18%,
+      rgba(255,184,74,0.12) 30%,
+      rgba(120,90,200,0.08) 45%,
       transparent 65%
     );
   transition: opacity 0.35s ease;
@@ -156,11 +165,16 @@
 
 /* ─────────────── Top bar ─────────────── */
 .sc-topbar {
+  position: relative;
+  /* Lift above the holo (z-index 5) and rainbow (z-index 4) so the gold
+     name + amber level pill never get washed out by the shimmer. */
+  z-index: 6;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 10px 12px 6px;
+  padding: 9px 12px 4px;
   gap: 8px;
+  flex-shrink: 0;
 }
 .sc-name {
   font-family: 'VT323', 'IBM Plex Mono', monospace;
@@ -206,7 +220,11 @@
 .sc-portrait {
   position: relative;
   margin: 4px 12px 8px;
-  height: 36%;
+  /* Was height: 36% (≈180px on a 504px card) — that ate the space the
+     footer needed. Fixed-height keeps the portrait visible without
+     starving the rest of the layout. */
+  height: 150px;
+  flex-shrink: 0;
   border-radius: 4px;
   background:
     radial-gradient(ellipse at 50% 30%, rgba(127,219,156,0.18) 0%, transparent 60%),
@@ -298,16 +316,23 @@
 }
 .sc-stat-row {
   display: grid;
-  grid-template-columns: 58px 1fr 28px;
+  /* Was 58px for label — "Engineering" (11 chars) overflowed at 10px mono.
+     72px gives "Engineering" room without crowding the bar. */
+  grid-template-columns: 72px 1fr 28px;
   align-items: center;
   gap: 6px;
   font-size: 10px;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
 }
 .sc-stat-label {
   color: var(--sc-text-dim);
   text-transform: uppercase;
   font-weight: 600;
+  /* Belt-and-suspenders: if any future label is longer, hide instead of
+     pushing the bar. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 .sc-stat-bar {
   position: relative;
@@ -340,19 +365,20 @@
 
 /* ─────────────── Moves list ─────────────── */
 .sc-moves {
-  padding: 6px 12px 4px;
+  padding: 4px 12px 2px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-height: 0;
+  gap: 2px;
+  /* Was flex: 1 — the moves block stretched to fill, which pushed the
+     footer below the card edge. Auto-size so footer always renders. */
+  flex: 0 0 auto;
 }
 .sc-move {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-rows: auto auto;
   column-gap: 6px;
-  padding: 4px 6px;
+  padding: 3px 4px;
   border-top: 1px dashed rgba(212,175,55,0.30);
   font-size: 9.5px;
   line-height: 1.25;
@@ -388,25 +414,38 @@
 .sc-move-desc {
   grid-column: 1 / -1;
   color: var(--sc-text-dim);
-  font-size: 9px;
-  letter-spacing: 0.2px;
+  /* Was 9px — too small for the stylized text. 10px reads cleanly without
+     blowing the layout. */
+  font-size: 10px;
+  letter-spacing: 0.15px;
+  line-height: 1.3;
 }
 
 /* ─────────────── Footer ─────────────── */
 .sc-footer {
+  position: relative;
+  /* Same z-trick as topbar — keeps the © line + serial number readable
+     while holo shimmer animates underneath. */
+  z-index: 6;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 12px 9px;
+  padding: 6px 12px 8px;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 8px;
+  /* Was 8px — borderline legible. 8.5px + better contrast (text not -dim)
+     keeps the copyright + card serial readable. */
+  font-size: 8.5px;
   letter-spacing: 1px;
-  color: var(--sc-text-dim);
+  color: var(--sc-text);
+  opacity: 0.78;
   text-transform: uppercase;
   border-top: 1px solid rgba(212,175,55,0.25);
-  margin-top: 4px;
+  /* Pin to bottom so the card serial always renders inside the frame
+     even if upstream content shrinks unexpectedly. */
+  margin-top: auto;
+  flex-shrink: 0;
 }
-.sc-serial { color: var(--sc-gold-bright); }
+.sc-serial { color: var(--sc-gold-bright); opacity: 1; }
 
 /* ─────────────── Back face (lore) ─────────────── */
 .sc-back-inner {
@@ -426,21 +465,25 @@
               inset 0 0 22px rgba(0,0,0,0.55);
   display: flex;
   flex-direction: column;
-  padding: 22px 22px 18px;
-  gap: 12px;
+  /* Tighter padding so seal + 3 paragraphs of lore + stats + footer all fit
+     inside the same height as the front. */
+  padding: 16px 18px 14px;
+  gap: 8px;
   color: var(--sc-text);
 }
 .sc-back-seal {
   align-self: center;
-  width: 64px;
-  height: 64px;
+  /* Slimmed from 64px to 52px so the lore paragraphs get more room. */
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
   border-radius: 50%;
   background:
     radial-gradient(circle at 30% 30%, #f5d56b 0%, #d4af37 45%, #8a6f1c 100%);
   display: grid;
   place-items: center;
   font-family: 'VT323', monospace;
-  font-size: 28px;
+  font-size: 24px;
   color: #1a1306;
   text-shadow: 0 1px 0 rgba(255,255,255,0.4);
   box-shadow: 0 0 18px rgba(212,175,55,0.45), inset 0 -3px 6px rgba(0,0,0,0.3);
@@ -460,12 +503,27 @@
 }
 .sc-back-lore {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  line-height: 1.55;
+  /* Was 11px / 1.55 — combined with 3 paragraphs and the seal + stats grid
+     the back face overflowed past the footer. 10.5px / 1.5 keeps the lore
+     readable while leaving room for the divider, stats, and footer. */
+  font-size: 10.5px;
+  line-height: 1.5;
   color: var(--sc-text);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.15px;
+  /* Safety valve: if a future edit makes the lore longer, scroll inside
+     the lore block instead of clipping the footer. Almost always inert. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,0.45) transparent;
 }
-.sc-back-lore p + p { margin-top: 8px; }
+.sc-back-lore::-webkit-scrollbar { width: 4px; }
+.sc-back-lore::-webkit-scrollbar-thumb {
+  background: rgba(212,175,55,0.45);
+  border-radius: 2px;
+}
+.sc-back-lore p + p { margin-top: 6px; }
 .sc-back-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -482,7 +540,10 @@
 .sc-back-stat span:first-child { color: var(--sc-text-dim); text-transform: uppercase; letter-spacing: 1px; }
 .sc-back-stat span:last-child { color: var(--sc-gold-bright); font-weight: 700; }
 .sc-back-footer {
+  position: relative;
+  z-index: 6;
   margin-top: auto;
+  flex-shrink: 0;
   text-align: center;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 9px;
@@ -509,10 +570,17 @@
 
 /* ─────────────── Mobile tweaks ─────────────── */
 @media (max-width: 480px) {
-  .sc-root { width: min(340px, 92vw); }
+  .sc-root {
+    width: min(340px, 92vw);
+    /* On very narrow phones the card gets short — give it a little extra
+       so footer still has breathing room. */
+    height: calc(min(340px, 92vw) * 1.6);
+  }
   .sc-name { font-size: 19px; }
+  .sc-portrait { height: 140px; }
   .sc-move-name { font-size: 12px; }
   .sc-move-power { font-size: 15px; }
+  .sc-move-desc { font-size: 9.5px; }
 }
 
 /* ─────────────── Reduced motion ─────────────── */
