@@ -1,0 +1,87 @@
+/* ───────────────────────────────────────────────────────────────────────────
+ * sticky-parallax.css
+ *
+ * Opt-in 3D tilt for `.sticky-bubble` elements. Add `sticky-bubble--parallax`
+ * alongside the existing `sticky-bubble` class to enable. The hook
+ * `useStickyParallax` writes `--tilt-x` and `--tilt-y` on the bubble element;
+ * this stylesheet wires those vars into the transform stack and a directional
+ * shadow.
+ *
+ * Composition with `floatBubble`:
+ *   The base `.sticky-bubble` animates `transform` directly. To layer tilt
+ *   without fighting that animation, the `--parallax` variant redefines the
+ *   animation to a sibling keyframe `floatBubbleTilt` that includes the
+ *   `rotateX(var(--tilt-x))` / `rotateY(var(--tilt-y))` factors. Defaults are
+ *   declared so a bubble without the hook still animates correctly (0deg tilt
+ *   is a no-op).
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.sticky-bubble--parallax {
+  /* Defaults so missing values never break the transform. */
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+
+  /* Give the bubble depth context. The parent of these bubbles supplies the
+   * stage perspective; if not present, a local fallback keeps things 3D. */
+  transform-style: preserve-3d;
+  perspective: 800px;
+  will-change: transform, box-shadow;
+
+  /* Override the inline `animation` from Landing.jsx with the tilt-aware
+   * keyframe. Inline `animation: floatBubble ...` from JSX takes precedence
+   * via inline style, so we use a more specific selector with `!important`
+   * only on the keyframe name swap. We keep timing tokens via the same
+   * `--float-dur` / `--float-delay` custom props already set inline. */
+  animation-name: floatBubbleTilt !important;
+}
+
+/* Tilt-aware keyframes. Mirrors the base `floatBubble` translation, but
+ * folds `rotateX` / `rotateY` driven by the custom props into every step so
+ * the tilt smoothly tracks even while the float animation is mid-frame. */
+@keyframes floatBubbleTilt {
+  0%, 100% {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--rot, 0deg))
+      rotateX(var(--tilt-x, 0deg))
+      rotateY(var(--tilt-y, 0deg))
+      translateY(0);
+  }
+  50% {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--rot, 0deg))
+      rotateX(var(--tilt-x, 0deg))
+      rotateY(var(--tilt-y, 0deg))
+      translateY(-5px);
+  }
+}
+
+/* Directional shadow driven by the tilt vars. Light source: upper-left, so
+ * positive tilt-y (rotated right) pushes the shadow right; positive tilt-x
+ * (pitched back) lengthens it downward. The `calc(... / 1deg)` trick strips
+ * the deg unit so we can multiply by a px scalar. */
+.sticky-bubble--parallax .sticky-note {
+  box-shadow:
+    calc(var(--tilt-y, 0deg) / 1deg * 0.6px)
+    calc(var(--tilt-x, 0deg) / 1deg * 0.6px + 8px)
+    18px
+    rgba(0, 0, 0, 0.35),
+    calc(var(--tilt-y, 0deg) / 1deg * 0.3px)
+    calc(var(--tilt-x, 0deg) / 1deg * 0.3px + 2px)
+    4px
+    rgba(0, 0, 0, 0.25);
+  transition: box-shadow 80ms linear;
+}
+
+/* Respect users who prefer reduced motion: snap to 0 tilt, no transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .sticky-bubble--parallax {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    animation-name: floatBubble !important;
+  }
+  .sticky-bubble--parallax .sticky-note {
+    transition: none;
+  }
+}

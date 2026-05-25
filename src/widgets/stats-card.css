@@ -1,0 +1,524 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Pokemon-style Stats Card — scoped to .sc-* class prefix
+   Self-contained: no external deps, no global selector pollution.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sc-root {
+  --sc-bg: #1a2332;
+  --sc-bg-2: #0f1824;
+  --sc-bg-3: #233048;
+  --sc-gold: #d4af37;
+  --sc-gold-bright: #f5d56b;
+  --sc-gold-dim: #8a6f1c;
+  --sc-green: #7fdb9c;
+  --sc-green-dim: #4a8c5e;
+  --sc-amber: #ffb84a;
+  --sc-text: #e8eef5;
+  --sc-text-dim: #9aabbf;
+  --sc-ink: #0b1320;
+  --sc-frame: #1c2a3f;
+  --sc-shadow: 0 30px 60px -20px rgba(0,0,0,.65), 0 12px 24px -10px rgba(0,0,0,.55);
+
+  position: relative;
+  width: min(360px, 92vw);
+  aspect-ratio: 2.5 / 3.5;
+  perspective: 1400px;
+  font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  color: var(--sc-text);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+}
+
+/* ─────────────── 3D flip wrapper ─────────────── */
+.sc-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  transform: rotateX(var(--sc-rx, 0deg)) rotateY(var(--sc-ry, 0deg));
+}
+.sc-root.is-flipped .sc-flipper {
+  transform: rotateX(var(--sc-rx, 0deg)) rotateY(calc(180deg + var(--sc-ry, 0deg)));
+}
+
+/* ─────────────── Face (shared) ─────────────── */
+.sc-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow: var(--sc-shadow);
+  cursor: pointer;
+  background: var(--sc-bg);
+}
+.sc-face--back { transform: rotateY(180deg); }
+
+/* ─────────────── Gold-foil frame ─────────────── */
+.sc-frame {
+  position: absolute;
+  inset: 0;
+  padding: 10px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg,
+      #b8892c 0%,
+      #f5d56b 18%,
+      #d4af37 35%,
+      #8a6f1c 52%,
+      #f5d56b 68%,
+      #d4af37 85%,
+      #b8892c 100%);
+  background-size: 220% 220%;
+  animation: sc-foil-shift 7s ease-in-out infinite;
+}
+@keyframes sc-foil-shift {
+  0%, 100% { background-position: 0% 0%; }
+  50%      { background-position: 100% 100%; }
+}
+
+.sc-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(127,219,156,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 100%, rgba(212,175,55,0.10) 0%, transparent 55%),
+    linear-gradient(180deg, #1c2940 0%, #131c2c 55%, #0f1622 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(212,175,55,0.45),
+              inset 0 0 22px rgba(0,0,0,0.55);
+}
+
+/* ─────────────── Holographic shimmer (mouse-tracked) ─────────────── */
+.sc-holo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 10px;
+  mix-blend-mode: color-dodge;
+  opacity: var(--sc-holo-opacity, 0);
+  background:
+    radial-gradient(
+      circle at var(--sc-mx, 50%) var(--sc-my, 50%),
+      rgba(255,255,255,0.35) 0%,
+      rgba(127,219,156,0.18) 18%,
+      rgba(255,184,74,0.14) 30%,
+      rgba(120,90,200,0.10) 45%,
+      transparent 65%
+    );
+  transition: opacity 0.35s ease;
+  z-index: 5;
+}
+.sc-holo-rainbow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 10px;
+  mix-blend-mode: overlay;
+  opacity: var(--sc-holo-opacity, 0);
+  background: conic-gradient(
+    from calc(var(--sc-angle, 0) * 1deg) at var(--sc-mx, 50%) var(--sc-my, 50%),
+    rgba(255, 80, 80, .25),
+    rgba(255, 200, 80, .25),
+    rgba(120, 220, 140, .25),
+    rgba(80, 180, 240, .25),
+    rgba(180, 100, 240, .25),
+    rgba(255, 80, 80, .25)
+  );
+  transition: opacity 0.35s ease;
+  z-index: 4;
+}
+
+/* Scan-line CRT texture (very subtle) */
+.sc-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255,255,255,0.03) 0px,
+    rgba(255,255,255,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  z-index: 3;
+}
+
+/* ─────────────── Top bar ─────────────── */
+.sc-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 12px 6px;
+  gap: 8px;
+}
+.sc-name {
+  font-family: 'VT323', 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--sc-gold-bright);
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 0 #000, 0 0 8px rgba(212,175,55,0.4);
+}
+.sc-subtitle {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--sc-green);
+  background: rgba(127,219,156,0.08);
+  border: 1px solid rgba(127,219,156,0.35);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.sc-level {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sc-amber);
+  background: linear-gradient(180deg, rgba(255,184,74,0.18), rgba(255,184,74,0.05));
+  border: 1px solid rgba(255,184,74,0.55);
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-shadow: 0 1px 0 #000;
+  white-space: nowrap;
+}
+.sc-level-icon {
+  width: 12px; height: 12px;
+  fill: var(--sc-amber);
+  filter: drop-shadow(0 0 3px rgba(255,184,74,0.6));
+}
+
+/* ─────────────── Portrait area ─────────────── */
+.sc-portrait {
+  position: relative;
+  margin: 4px 12px 8px;
+  height: 36%;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(127,219,156,0.18) 0%, transparent 60%),
+    linear-gradient(180deg, #0e1a26 0%, #0a1320 100%);
+  border: 1px solid rgba(212,175,55,0.55);
+  overflow: hidden;
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255,255,255,0.10) 50%,
+    transparent 65%
+  );
+  transform: translateX(-100%);
+  animation: sc-portrait-shimmer 5.5s ease-in-out infinite;
+}
+@keyframes sc-portrait-shimmer {
+  0%, 60% { transform: translateX(-100%); }
+  80%     { transform: translateX(100%); }
+  100%    { transform: translateX(100%); }
+}
+.sc-portrait-svg {
+  width: 80%;
+  height: 90%;
+  filter: drop-shadow(0 0 6px rgba(127,219,156,0.45));
+}
+.sc-portrait-tag {
+  position: absolute;
+  bottom: 4px;
+  left: 6px;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
+  color: var(--sc-green);
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
+.sc-portrait-corner {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-family: 'VT323', monospace;
+  font-size: 10px;
+  color: var(--sc-gold-bright);
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
+
+/* ─────────────── Type badges ─────────────── */
+.sc-types {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.sc-type {
+  font-family: 'VT323', monospace;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  background: rgba(0,0,0,0.35);
+}
+.sc-type--lean    { color: #7fdb9c; }
+.sc-type--mes     { color: #4ec9d4; }
+.sc-type--ai      { color: #c79bff; }
+.sc-type--quality { color: #ffb84a; }
+.sc-type--software{ color: #6cb8ff; }
+.sc-type--engineering { color: #ff8d6c; }
+
+/* ─────────────── Stats block ─────────────── */
+.sc-stats {
+  padding: 6px 12px 4px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.sc-stat-row {
+  display: grid;
+  grid-template-columns: 58px 1fr 28px;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+.sc-stat-label {
+  color: var(--sc-text-dim);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.sc-stat-bar {
+  position: relative;
+  height: 7px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.sc-stat-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--sc-target, 0%);
+  background: linear-gradient(90deg, var(--sc-fill-a, #7fdb9c), var(--sc-fill-b, #d4af37));
+  box-shadow: 0 0 6px rgba(127,219,156,0.5);
+  transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sc-stat-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.35), transparent 60%);
+}
+.sc-stat-val {
+  color: var(--sc-gold-bright);
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────── Moves list ─────────────── */
+.sc-moves {
+  padding: 6px 12px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+.sc-move {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  padding: 4px 6px;
+  border-top: 1px dashed rgba(212,175,55,0.30);
+  font-size: 9.5px;
+  line-height: 1.25;
+}
+.sc-move:first-child { border-top: none; }
+.sc-move-name {
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: var(--sc-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sc-move-type {
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 1px 4px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+.sc-move-power {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--sc-amber);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255,184,74,0.5);
+  align-self: center;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sc-move-desc {
+  grid-column: 1 / -1;
+  color: var(--sc-text-dim);
+  font-size: 9px;
+  letter-spacing: 0.2px;
+}
+
+/* ─────────────── Footer ─────────────── */
+.sc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 12px 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--sc-text-dim);
+  text-transform: uppercase;
+  border-top: 1px solid rgba(212,175,55,0.25);
+  margin-top: 4px;
+}
+.sc-serial { color: var(--sc-gold-bright); }
+
+/* ─────────────── Back face (lore) ─────────────── */
+.sc-back-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.18) 0%, transparent 60%),
+    repeating-linear-gradient(45deg,
+      rgba(212,175,55,0.05) 0px,
+      rgba(212,175,55,0.05) 2px,
+      transparent 2px,
+      transparent 14px),
+    linear-gradient(180deg, #1c2940 0%, #0f1622 100%);
+  box-shadow: inset 0 0 0 1px rgba(212,175,55,0.45),
+              inset 0 0 22px rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 22px 18px;
+  gap: 12px;
+  color: var(--sc-text);
+}
+.sc-back-seal {
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, #f5d56b 0%, #d4af37 45%, #8a6f1c 100%);
+  display: grid;
+  place-items: center;
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  color: #1a1306;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow: 0 0 18px rgba(212,175,55,0.45), inset 0 -3px 6px rgba(0,0,0,0.3);
+  letter-spacing: 1px;
+}
+.sc-back-title {
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  color: var(--sc-gold-bright);
+  text-align: center;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 0 #000;
+}
+.sc-back-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sc-gold), transparent);
+}
+.sc-back-lore {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--sc-text);
+  letter-spacing: 0.2px;
+}
+.sc-back-lore p + p { margin-top: 8px; }
+.sc-back-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  font-size: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.sc-back-stat {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dotted rgba(212,175,55,0.3);
+  padding-bottom: 2px;
+}
+.sc-back-stat span:first-child { color: var(--sc-text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.sc-back-stat span:last-child { color: var(--sc-gold-bright); font-weight: 700; }
+.sc-back-footer {
+  margin-top: auto;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--sc-text-dim);
+  text-transform: uppercase;
+}
+
+/* ─────────────── Flip hint ─────────────── */
+.sc-hint {
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--sc-text-dim);
+  opacity: 0.7;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ─────────────── Mobile tweaks ─────────────── */
+@media (max-width: 480px) {
+  .sc-root { width: min(340px, 92vw); }
+  .sc-name { font-size: 19px; }
+  .sc-move-name { font-size: 12px; }
+  .sc-move-power { font-size: 15px; }
+}
+
+/* ─────────────── Reduced motion ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .sc-frame { animation: none; }
+  .sc-portrait::after { animation: none; }
+  .sc-stat-fill { transition: none; }
+  .sc-flipper { transition-duration: 0.35s; }
+}

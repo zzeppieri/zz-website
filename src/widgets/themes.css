@@ -1,0 +1,293 @@
+/* =========================================================================
+   ThemeSwitcher — root attribute overrides + scoped UI styles
+   Override approach: :root[data-theme="..."] sets CSS custom properties so
+   every existing rule in src/index.css that reads --bg / --text / --accent
+   etc. cascades to the new palette automatically.
+   ========================================================================= */
+
+/* ---------- Global smooth transitions on theme switch ---------- */
+html, body {
+  transition: background-color 250ms ease, color 250ms ease;
+}
+:root[data-theme] body,
+:root[data-theme] .panel,
+:root[data-theme] .card,
+:root[data-theme] .section,
+:root[data-theme] header,
+:root[data-theme] footer,
+:root[data-theme] nav {
+  transition:
+    background-color 250ms ease,
+    color 250ms ease,
+    border-color 250ms ease;
+}
+
+/* =========================================================================
+   THEME 1 — Blueprint is the default; no overrides needed. The component
+   simply clears data-theme to fall back to the values defined in index.css.
+   We still register an explicit selector for completeness/parity.
+   ========================================================================= */
+:root[data-theme="blueprint"] {
+  --bg: #1a2332;
+  --bg-light: #1f2b3d;
+  --bg-2: #1f2b3d;
+  --border: #2a3a52;
+  --text: #e0e8f0;
+  --text-muted: #8899aa;
+  --accent: #ff6b4a;
+  --accent-2: #4ec9d4;
+  --accent-3: #33ff33;
+  --cyan: #4ec9d4;
+  --grid: rgba(78, 201, 212, 0.07);
+  --grid-strong: rgba(78, 201, 212, 0.12);
+  --term-green: #33ff33;
+  --term-dim: #1a6b1a;
+  --term-bg: #0a1a0a;
+  --white: #f0f4f8;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+/* =========================================================================
+   THEME 2 — Factory Floor: warm amber + steel-gray, hint of orange
+   ========================================================================= */
+:root[data-theme="factory"] {
+  --bg: #2a1e10;
+  --bg-light: #3a2a18;
+  --bg-2: #3a2a18;
+  --border: #5a4530;
+  --text: #f4d35e;
+  --text-muted: #c9a86a;
+  --accent: #ff8c42;
+  --accent-2: #ffb347;
+  --accent-3: #c0c0c8;
+  --cyan: #ffb347;
+  --grid: rgba(244, 211, 94, 0.06);
+  --grid-strong: rgba(244, 211, 94, 0.12);
+  --term-green: #ff8c42;
+  --term-dim: #7a3f10;
+  --term-bg: #1a1006;
+  --white: #fff4d6;
+}
+
+/* =========================================================================
+   THEME 3 — Shop Terminal: green-on-black classic DOS / shop floor terminal
+   ========================================================================= */
+:root[data-theme="terminal"] {
+  --bg: #050d05;
+  --bg-light: #0a1a0a;
+  --bg-2: #0a1a0a;
+  --border: #1a6b1a;
+  --text: #33ff33;
+  --text-muted: #1f9f1f;
+  --accent: #33ff33;
+  --accent-2: #66ff66;
+  --accent-3: #b6ff6b;
+  --cyan: #33ff33;
+  --grid: rgba(51, 255, 51, 0.06);
+  --grid-strong: rgba(51, 255, 51, 0.14);
+  --term-green: #33ff33;
+  --term-dim: #1a6b1a;
+  --term-bg: #050d05;
+  --white: #c8ffc8;
+  --font-display: 'VT323', 'IBM Plex Mono', monospace;
+  --font-body: 'VT323', 'IBM Plex Mono', monospace;
+}
+
+/* =========================================================================
+   THEME 4 — Executive: off-white + deep navy + gold accents (boardroom)
+   ========================================================================= */
+:root[data-theme="executive"] {
+  --bg: #f5f1e8;
+  --bg-light: #fbf7ed;
+  --bg-2: #fbf7ed;
+  --border: #c9bfa8;
+  --text: #18243a;
+  --text-muted: #5a6478;
+  --accent: #b8902a;
+  --accent-2: #18243a;
+  --accent-3: #b8902a;
+  --cyan: #18243a;
+  --grid: rgba(24, 36, 58, 0.05);
+  --grid-strong: rgba(24, 36, 58, 0.10);
+  --term-green: #18243a;
+  --term-dim: #b8902a;
+  --term-bg: #f5f1e8;
+  --white: #18243a;
+}
+
+/* =========================================================================
+   ThemeSwitcher UI — scoped to .zz-theme-switcher
+   ========================================================================= */
+.zz-theme-switcher {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 9999;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  color: var(--text, #e0e8f0);
+  user-select: none;
+}
+
+.zz-theme-switcher *,
+.zz-theme-switcher *::before,
+.zz-theme-switcher *::after {
+  box-sizing: border-box;
+}
+
+.zz-theme-switcher__puck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #2a3a52);
+  background: var(--bg-light, #1f2b3d);
+  color: var(--text, #e0e8f0);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 180ms ease, background-color 200ms ease,
+              border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.zz-theme-switcher__puck:hover,
+.zz-theme-switcher__puck:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--accent, #ff6b4a);
+  outline: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.zz-theme-switcher__dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent, #ff6b4a);
+  box-shadow: 0 0 8px var(--accent, #ff6b4a);
+}
+
+.zz-theme-switcher__label {
+  white-space: nowrap;
+}
+
+.zz-theme-switcher__caret {
+  font-size: 10px;
+  opacity: 0.7;
+  transition: transform 200ms ease;
+}
+
+.zz-theme-switcher--open .zz-theme-switcher__caret {
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown panel ---- */
+.zz-theme-switcher__panel {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  min-width: 220px;
+  padding: 6px;
+  background: var(--bg-light, #1f2b3d);
+  border: 1px solid var(--border, #2a3a52);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  transform-origin: bottom left;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.zz-theme-switcher--open .zz-theme-switcher__panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.zz-theme-switcher__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text, #e0e8f0);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.zz-theme-switcher__option:hover,
+.zz-theme-switcher__option:focus-visible {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border, #2a3a52);
+  outline: none;
+}
+
+.zz-theme-switcher__option[aria-checked="true"] {
+  border-color: var(--accent, #ff6b4a);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zz-theme-switcher__swatches {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.zz-theme-switcher__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.zz-theme-switcher__name {
+  display: inline-block;
+}
+
+.zz-theme-switcher__check {
+  width: 14px;
+  text-align: center;
+  opacity: 0;
+}
+
+.zz-theme-switcher__option[aria-checked="true"] .zz-theme-switcher__check {
+  opacity: 1;
+  color: var(--accent, #ff6b4a);
+}
+
+/* ---- Mobile niceties ---- */
+@media (max-width: 640px) {
+  .zz-theme-switcher {
+    bottom: 14px;
+    left: 14px;
+  }
+  .zz-theme-switcher__panel {
+    min-width: 200px;
+  }
+}
+
+/* ---- Respect reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  html, body,
+  .zz-theme-switcher__puck,
+  .zz-theme-switcher__panel,
+  .zz-theme-switcher__option,
+  .zz-theme-switcher__caret {
+    transition: none !important;
+  }
+}

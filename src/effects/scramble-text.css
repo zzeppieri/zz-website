@@ -1,0 +1,32 @@
+/* ScrambleText effect — scoped styles, .st- prefix */
+
+.st-root {
+  font-family: 'VT323', 'IBM Plex Mono', 'Courier New', ui-monospace, monospace;
+  white-space: pre;
+  letter-spacing: 0.02em;
+  display: inline-block;
+}
+
+.st-crt {
+  color: #6cff7a;
+  text-shadow:
+    0 0 2px rgba(108, 255, 122, 0.55),
+    0 0 6px rgba(108, 255, 122, 0.35);
+}
+
+.st-scrambling {
+  /* subtle hint that text is still resolving */
+  opacity: 0.96;
+}
+
+.st-char {
+  display: inline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-root,
+  .st-scrambling {
+    /* no animation-driven styles; component already short-circuits */
+    opacity: 1;
+  }
+}
