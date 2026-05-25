@@ -1,0 +1,314 @@
+/* =========================================================================
+   mode.css — scoped styles for <ModeSwitcher /> + <ModeHost /> fallback
+   All classes use the .mo- prefix to avoid collisions with other HUDs.
+
+   Visual contract: rounded pill, navy bg, CRT cyan accent. Mirrors the
+   .zz-theme-switcher language so the top-right HUD cluster reads as one
+   visual family: Achievements (top) → Audio → Theme → Mode.
+   ========================================================================= */
+
+/* ---- Container ---------------------------------------------------------- */
+.mo-switcher {
+  /* Top-right cluster — stacks below ThemeSwitcher (114px) on desktop.
+     On mobile the ThemeSwitcher is hidden, so ModeSwitcher fills that
+     slot at 114px so it doesn't crowd Audio/Achievements. */
+  position: fixed;
+  top: 164px;
+  right: 14px;
+  z-index: 9999;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  color: var(--text, #e0e8f0);
+  user-select: none;
+}
+
+.mo-switcher *,
+.mo-switcher *::before,
+.mo-switcher *::after {
+  box-sizing: border-box;
+}
+
+/* ---- Puck (the always-visible button) ----------------------------------- */
+.mo-switcher__puck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #2a3a52);
+  background: var(--bg-light, #1f2b3d);
+  color: var(--text, #e0e8f0);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 180ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.mo-switcher__puck:hover,
+.mo-switcher__puck:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--accent-2, #4ec9d4);
+  outline: none;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 14px rgba(78, 201, 212, 0.25);
+}
+
+.mo-switcher__puck:focus-visible {
+  outline: 2px solid var(--accent-2, #4ec9d4);
+  outline-offset: 2px;
+}
+
+.mo-switcher__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(78, 201, 212, 0.45));
+}
+
+.mo-switcher__label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.mo-switcher__label-prefix {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  opacity: 0.65;
+}
+
+.mo-switcher__label-value {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--accent-2, #4ec9d4);
+}
+
+.mo-switcher__caret {
+  font-size: 11px;
+  opacity: 0.9;
+  transition: transform 200ms ease;
+}
+
+.mo-switcher--open .mo-switcher__caret {
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown panel ----------------------------------------------------- */
+.mo-switcher__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 240px;        /* ≤ 240px per spec */
+  max-width: 240px;
+  padding: 6px;
+  background: var(--bg-light, #1f2b3d);
+  border: 1px solid var(--border, #2a3a52);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.mo-switcher--open .mo-switcher__panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* ---- Option rows -------------------------------------------------------- */
+.mo-switcher__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text, #e0e8f0);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.mo-switcher__option + .mo-switcher__option {
+  margin-top: 2px;
+}
+
+.mo-switcher__option:hover,
+.mo-switcher__option:focus-visible {
+  background: rgba(78, 201, 212, 0.06);
+  border-color: var(--border, #2a3a52);
+  outline: none;
+}
+
+.mo-switcher__option[aria-checked="true"] {
+  border-color: var(--accent-2, #4ec9d4);
+  background: rgba(78, 201, 212, 0.08);
+}
+
+.mo-switcher__option-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.mo-switcher__option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mo-switcher__option-name {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text, #e0e8f0);
+}
+
+.mo-switcher__option-desc {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--text-muted, #a8b8cc);
+  line-height: 1.3;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mo-switcher__check {
+  flex: 0 0 auto;
+  width: 14px;
+  text-align: center;
+  opacity: 0;
+  color: var(--accent-2, #4ec9d4);
+}
+
+.mo-switcher__option[aria-checked="true"] .mo-switcher__check {
+  opacity: 1;
+}
+
+/* =========================================================================
+   <ModeHost /> Suspense fallback — brief CRT-styled loading line.
+   Visible only when chunk load >200ms; otherwise an unnoticeable flash.
+   ========================================================================= */
+.mo-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--term-bg, #0a1a0a);
+  color: var(--term-green, #33ff33);
+  font-family: 'VT323', 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  animation: mo-fade-in 120ms ease both;
+}
+
+.mo-loading__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: 1px solid rgba(51, 255, 51, 0.35);
+  border-radius: 4px;
+  background: rgba(10, 26, 10, 0.85);
+  box-shadow:
+    0 0 18px rgba(51, 255, 51, 0.25),
+    inset 0 0 0 1px rgba(51, 255, 51, 0.08);
+}
+
+.mo-loading__block {
+  display: inline-block;
+  animation: mo-blink 900ms steps(2, end) infinite;
+}
+
+.mo-loading__text {
+  white-space: nowrap;
+}
+
+@keyframes mo-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes mo-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+
+/* =========================================================================
+   HUD visibility gate — hide on non-landing views, matching the existing
+   pattern in src/index.css (which gates .ach-hud, .au-hud, .zz-theme-switcher,
+   .dm-hud). We add .mo-switcher to that family.
+   ========================================================================= */
+:root[data-app-view]:not([data-app-view="landing"]) .mo-switcher {
+  display: none !important;
+}
+
+/* =========================================================================
+   Mobile (<=640px): ThemeSwitcher is hidden, so ModeSwitcher takes its
+   114px slot. Slightly tighter typography.
+   ========================================================================= */
+@media (max-width: 640px) {
+  .mo-switcher {
+    top: 114px;
+    right: 14px;
+  }
+  .mo-switcher__puck {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+  .mo-switcher__panel {
+    width: min(240px, calc(100vw - 28px));
+  }
+}
+
+/* =========================================================================
+   Reduced motion
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .mo-switcher__puck,
+  .mo-switcher__panel,
+  .mo-switcher__option,
+  .mo-switcher__caret,
+  .mo-loading,
+  .mo-loading__block {
+    transition: none !important;
+    animation: none !important;
+  }
+}

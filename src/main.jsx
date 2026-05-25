@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { DevModeProvider, DevModeHUD } from './lib/DevMode.jsx'
 import { AchievementsProvider, AchievementsHUD, useAchievements } from './lib/Achievements.jsx'
 import { AudioProvider, AudioHUD, useAudio } from './lib/Audio.jsx'
+import { ModeProvider, ModeSwitcher, ModeHost, useMode } from './lib/Mode.jsx'
 import ThemeSwitcher from './widgets/ThemeSwitcher.jsx'
 import './index.css'
 
@@ -42,20 +43,56 @@ function AchievementsBridge() {
   return null
 }
 
+/* Error boundary for the alt-mode dispatcher — if a lazy-loaded mode
+ * fails (chunk error, missing file, etc.), drop back to 'default'
+ * instead of leaving the user with a stuck CRT loader. */
+class ModeErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false } }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidUpdate(_, prev) {
+    if (prev.modeKey !== this.props.modeKey && this.state.hasError) {
+      this.setState({ hasError: false })
+    }
+  }
+  componentDidCatch(err) {
+    // eslint-disable-next-line no-console
+    console.error('[ModeHost] alt-mode failed to load:', err)
+    try { this.props.onError && this.props.onError() } catch (e) { /* noop */ }
+  }
+  render() {
+    if (this.state.hasError) return null
+    return this.props.children
+  }
+}
+
+/* Wraps the ModeHost so a failure resets the mode to 'default'. */
+function SafeModeHost() {
+  const { mode, setMode } = useMode()
+  return (
+    <ModeErrorBoundary modeKey={mode} onError={() => setMode('default')}>
+      <ModeHost />
+    </ModeErrorBoundary>
+  )
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AudioProvider>
-      <AchievementsProvider>
-        <DevModeProvider>
-          <App />
-          <AudioBridge />
-          <AchievementsBridge />
-          <DevModeHUD />
-          <AchievementsHUD />
-          <AudioHUD />
-          <ThemeSwitcher />
-        </DevModeProvider>
-      </AchievementsProvider>
-    </AudioProvider>
+    <ModeProvider>
+      <AudioProvider>
+        <AchievementsProvider>
+          <DevModeProvider>
+            <App />
+            <AudioBridge />
+            <AchievementsBridge />
+            <DevModeHUD />
+            <AchievementsHUD />
+            <AudioHUD />
+            <ThemeSwitcher />
+            <ModeSwitcher />
+            <SafeModeHost />
+          </DevModeProvider>
+        </AchievementsProvider>
+      </AudioProvider>
+    </ModeProvider>
   </React.StrictMode>
 )

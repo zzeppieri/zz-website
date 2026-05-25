@@ -22,7 +22,9 @@
   position: fixed;
   top: 14px;
   right: 14px;
-  z-index: 9000;
+  /* Above the AudioHUD (z 9999) so the expanded panel covers the audio
+     button instead of being clipped by it. */
+  z-index: 10000;
   font-family: var(--ach-mono);
   color: var(--ach-text);
   pointer-events: none;

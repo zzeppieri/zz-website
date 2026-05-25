@@ -64,6 +64,13 @@ export default function App() {
     setCurrentSection(sectionId)
     setSectionColor(color || '#4a7cf9')
 
+    // Push a history entry so the browser/system back gesture (especially
+    // important on mobile) navigates back to landing instead of exiting
+    // the site entirely. The popstate handler below catches the back.
+    try {
+      window.history.pushState({ section: sectionId }, '', `#${sectionId}`)
+    } catch (e) { /* ignore — privacy modes can block */ }
+
     // Bezel zoom — section lives in zoom-bezel the whole time
     setView('zooming-in')
     setZoomClass('')
@@ -96,8 +103,12 @@ export default function App() {
     crtTimerRef.current = setTimeout(() => setCrtOn(false), 500)
   }, [])
 
-  const navigateBack = useCallback(() => {
-    if (view !== 'section') return
+  // Actual close animation. Both the in-app back button (via
+  // navigateBack -> history.back()) and the browser/system back gesture
+  // (via the popstate effect below) funnel into this so they stay in
+  // sync visually.
+  const animateBackToLanding = useCallback(() => {
+    if (view !== 'section' && view !== 'zooming-in') return
 
     // CRT green shutdown, then zoom-out
     setView('crt-closing')
@@ -117,6 +128,32 @@ export default function App() {
       safetyTimerRef.current = setTimeout(finishZoomOut, 500)
     }, 200)
   }, [view, finishZoomOut])
+
+  const navigateBack = useCallback(() => {
+    if (view !== 'section') return
+    // Drive the URL back so the browser back gesture and the in-app
+    // back button stay in sync. The popstate listener animates.
+    try {
+      window.history.back()
+    } catch (e) {
+      // Fallback for sandboxed contexts
+      animateBackToLanding()
+    }
+  }, [view, animateBackToLanding])
+
+  // popstate — runs the close animation on browser/system back gesture
+  // (or when the in-app back button popped history).
+  useEffect(() => {
+    const onPop = () => {
+      // Only act if we're in a section-ish state. If we're already on
+      // landing, popstate may have been someone else's — ignore.
+      if (view === 'section' || view === 'zooming-in') {
+        animateBackToLanding()
+      }
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [view, animateBackToLanding])
 
   const handleZoomTransitionEnd = useCallback((e) => {
     if (e.propertyName !== 'top') return

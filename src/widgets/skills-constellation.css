@@ -1,4 +1,15 @@
 /* ─── Skills Constellation ─── */
+.sk-root,
+.sk-root * {
+  /* Aggressively disable text selection / iOS callout on every descendant
+     — finger-hover was triggering text selection mid-pointermove and
+     interrupting the constellation interactions. */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+}
 .sk-root {
   position: relative;
   width: 100%;
@@ -8,8 +19,6 @@
   border-radius: 4px;
   overflow: hidden;
   font-family: 'IBM Plex Mono', 'VT323', monospace;
-  user-select: none;
-  -webkit-user-select: none;
   touch-action: none;
   /* Stack legend on top, simulation stage below — no overlap, ever. */
   display: flex;
